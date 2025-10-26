@@ -3,12 +3,11 @@ const CACHE_NAME = 'career-challenges-v2';
 const PRECACHE_URLS = [
   './',
   'index.html',
-  'css/style.css',
-  'css/responsive.css',
-  'js/timer.js',
-  'js/setup-button.js',
-  'js/notepad.js',
-  'js/app.js'
+  'style.css',
+  'responsive.css',
+  'timer.js',
+  'setup-button.js',
+  'app.js'
 ];
 
 self.addEventListener('install', event => {
