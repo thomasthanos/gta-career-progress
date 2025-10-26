@@ -903,3 +903,96 @@ body {
     white-space: nowrap;
     border: 0;
 }
+/* Extra timers styles */
+.extra-timers-container {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-colour);
+}
+
+.extra-timer {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px;
+    border: 1px solid var(--border-colour);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    background: var(--card-bg);
+    transition: all 0.3s ease;
+}
+
+.extra-timer:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.extra-timer-header {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1;
+}
+
+.extra-timer-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-colour);
+}
+
+.extra-timer-time {
+    font-family: var(--monospace-font);
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-colour);
+}
+
+.extra-timer-progress-container {
+    position: relative;
+    width: 60px;
+    height: 60px;
+}
+
+.extra-timer-progress {
+    transform: rotate(-90deg);
+    width: 60px;
+    height: 60px;
+}
+
+.extra-timer-progress-bg {
+    fill: none;
+    stroke: var(--border-colour);
+    stroke-width: 4;
+}
+
+.extra-timer-progress-fill {
+    fill: none;
+    stroke: var(--primary);
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-dasharray: 339.292;
+    stroke-dashoffset: 339.292;
+    transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease;
+}
+
+/* Responsive adjustments for extra timers */
+@media (max-width: 768px) {
+    .extra-timer {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+    
+    .extra-timer-header {
+        align-items: center;
+    }
+    
+    .extra-timer-progress-container {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .extra-timer-progress {
+        width: 50px;
+        height: 50px;
+    }
+}

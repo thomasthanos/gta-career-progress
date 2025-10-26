@@ -20,6 +20,8 @@ class HeistTimer {
         this.lastSetupDuration = 0;
         this.setupElapsedTotal = 0;
         this.heistName = '';
+        this.extraTimers = []; // Array για τα επιπλέον timers μετά τα 7 λεπτά
+        
         this.elements = {
             timerDisplay: document.getElementById('timerDisplay'),
             timerStatus: document.getElementById('timerStatus'),
@@ -39,8 +41,29 @@ class HeistTimer {
         this.elements.confirmResetBtn = document.getElementById('confirmResetBtn');
         this.elements.cancelResetBtn = document.getElementById('cancelResetBtn');
         this.elements.setupTotalTime = document.getElementById('setupTotalTime');
+        
+        // Δημιουργία container για τα επιπλέον timers
+        this.createExtraTimersContainer();
+        
         this.init();
     }
+
+    createExtraTimersContainer() {
+        // Δημιουργία container για τα επιπλέον timers
+        const extraTimersContainer = document.createElement('div');
+        extraTimersContainer.className = 'extra-timers-container';
+        extraTimersContainer.style.display = 'none';
+        extraTimersContainer.style.marginTop = '20px';
+        extraTimersContainer.style.padding = '10px';
+        extraTimersContainer.style.borderTop = '1px solid var(--border-colour)';
+        
+        // Προσθήκη του container μετά το κύριο timer
+        const timerCard = document.querySelector('.timer-card .card-body');
+        timerCard.appendChild(extraTimersContainer);
+        
+        this.elements.extraTimersContainer = extraTimersContainer;
+    }
+
     init() {
         this.bindEvents();
         this.loadFromStorage();
@@ -50,27 +73,32 @@ class HeistTimer {
         this.updateButtonStates();
         this.updateStatus();
     }
+
     bindEvents() {
         this.elements.startSetupBtn.addEventListener('click', () => this.startSetup());
         this.elements.completeSetupBtn.addEventListener('click', () => this.completeSetup());
         this.elements.startHeistBtn.addEventListener('click', () => this.startHeist());
         this.elements.completeHeistBtn.addEventListener('click', () => this.completeHeist());
         this.elements.resetBtn.addEventListener('click', () => this.reset());
+        
         if (this.elements.confirmResetBtn) {
             this.elements.confirmResetBtn.addEventListener('click', () => {
                 this.hideResetModal();
                 this.reset(true);
             });
         }
+        
         if (this.elements.cancelResetBtn) {
             this.elements.cancelResetBtn.addEventListener('click', () => this.hideResetModal());
         }
+        
         if (this.elements.heistNameInput) {
             this.elements.heistNameInput.addEventListener('input', () => {
                 this.heistName = this.elements.heistNameInput.value;
                 this.saveNameToStorage();
             });
         }
+        
         document.addEventListener('keydown', (e) => {
             const targetTag = e.target && e.target.tagName ? e.target.tagName.toLowerCase() : '';
             const isEditable = targetTag === 'input' || targetTag === 'textarea' || e.target.isContentEditable;
@@ -83,6 +111,7 @@ class HeistTimer {
             }
         });
     }
+
     handleSpacePress() {
         switch (this.currentPhase) {
             case 'ready':
@@ -99,23 +128,164 @@ class HeistTimer {
                 break;
         }
     }
+
     startSetup() {
         if (this.currentPhase !== 'ready' && this.currentPhase !== 'heist-ready') return;
         this.currentPhase = 'setup';
         this.isRunning = true;
         this.setupStartTime = Date.now();
+        
+        // Καθαρισμός παλιών extra timers
+        this.clearExtraTimers();
+        
         if (this.setupTimes.length === 0) {
             this.startTime = Date.now();
         }
+        
         this.interval = setInterval(() => {
             this.currentSetupTime = Date.now() - this.setupStartTime;
             this.elapsedTime = this.setupElapsedTotal + this.currentSetupTime;
             this.updateDisplay();
             this.updateProgress(this.currentSetupTime);
+            
+            // Έλεγχος για δημιουργία νέου timer στα 7 λεπτά
+            this.checkForExtraTimer(this.currentSetupTime);
         }, 10);
+        
         this.updateButtonStates();
         this.updateStatus();
     }
+
+    checkForExtraTimer(currentTime) {
+        const sevenMinutes = 7 * 60 * 1000;
+        const timerCount = Math.floor(currentTime / sevenMinutes);
+        
+        // Δημιουργία νέων timers αν χρειάζεται
+        while (this.extraTimers.length < timerCount) {
+            this.createExtraTimer(this.extraTimers.length + 1);
+        }
+        
+        // Ενημέρωση των extra timers
+        this.updateExtraTimers(currentTime);
+    }
+
+    createExtraTimer(timerNumber) {
+        const timerId = `extra-timer-${timerNumber}`;
+        
+        // Δημιουργία HTML για το νέο timer
+        const timerElement = document.createElement('div');
+        timerElement.className = 'extra-timer';
+        timerElement.id = timerId;
+        timerElement.innerHTML = `
+            <div class="extra-timer-header">
+                <span class="extra-timer-title">Timer ${timerNumber} (7+ min)</span>
+                <span class="extra-timer-time">00.00</span>
+            </div>
+            <div class="extra-timer-progress-container">
+                <svg class="extra-timer-progress" width="120" height="120" viewBox="0 0 120 120">
+                    <circle class="extra-timer-progress-bg" cx="60" cy="60" r="54"></circle>
+                    <circle class="extra-timer-progress-fill" cx="60" cy="60" r="54"></circle>
+                </svg>
+            </div>
+        `;
+        
+        // Προσθήκη στυλ
+        timerElement.style.display = 'flex';
+        timerElement.style.alignItems = 'center';
+        timerElement.style.gap = '15px';
+        timerElement.style.padding = '10px';
+        timerElement.style.border = '1px solid var(--border-colour)';
+        timerElement.style.borderRadius = '8px';
+        timerElement.style.marginBottom = '10px';
+        timerElement.style.background = 'var(--card-bg)';
+        
+        // Προσθήκη στο container
+        this.elements.extraTimersContainer.appendChild(timerElement);
+        this.elements.extraTimersContainer.style.display = 'block';
+        
+        // Αποθήκευση στο array
+        this.extraTimers.push({
+            id: timerId,
+            element: timerElement,
+            startTime: this.setupStartTime + (timerNumber * 7 * 60 * 1000),
+            progressFill: timerElement.querySelector('.extra-timer-progress-fill'),
+            timeDisplay: timerElement.querySelector('.extra-timer-time')
+        });
+    }
+
+    updateExtraTimers(currentTime) {
+        const sevenMinutes = 7 * 60 * 1000;
+        
+        this.extraTimers.forEach((timer, index) => {
+            const timerElapsed = Math.max(0, currentTime - (index + 1) * sevenMinutes);
+            const timerProgress = Math.min(timerElapsed / sevenMinutes, 1);
+            
+            if (timer.timeDisplay) {
+                timer.timeDisplay.textContent = this.formatTime(timerElapsed);
+            }
+            
+            if (timer.progressFill) {
+                this.updateExtraTimerProgress(timer.progressFill, timerProgress, timerElapsed);
+            }
+        });
+    }
+
+    updateExtraTimerProgress(progressElement, progress, time) {
+        const circumference = 2 * Math.PI * 54;
+        const offset = circumference * (1 - progress);
+        progressElement.style.strokeDasharray = circumference;
+        progressElement.style.strokeDashoffset = offset;
+        
+        // Ομαλή μετάβαση χρωμάτων για τα extra timers
+        this.updateTimerColor(progressElement, time);
+    }
+
+    updateTimerColor(progressElement, time) {
+        // Ομαλή μετάβαση χρωμάτων από πράσινο → κίτρινο → πορτοκαλί → κόκκινο → σκούρο κόκκινο
+        let r, g, b;
+        
+        if (time < 60000) {
+            // Πράσινο προς κίτρινο (0-1 λεπτό)
+            const progress = time / 60000;
+            r = Math.floor(56 + (255 - 56) * progress);
+            g = 184;
+            b = Math.floor(184 - 184 * progress);
+        } else if (time < 180000) {
+            // Κίτρινο προς πορτοκαλί (1-3 λεπτά)
+            const progress = (time - 60000) / 120000;
+            r = 255;
+            g = Math.floor(184 - (184 - 100) * progress);
+            b = 0;
+        } else if (time < 300000) {
+            // Πορτοκαλί προς κόκκινο (3-5 λεπτά)
+            const progress = (time - 180000) / 120000;
+            r = 255;
+            g = Math.floor(100 - 100 * progress);
+            b = 0;
+        } else if (time < 420000) {
+            // Κόκκινο προς σκούρο κόκκινο (5-7 λεπτά)
+            const progress = (time - 300000) / 120000;
+            r = Math.floor(255 - (255 - 139) * progress);
+            g = 0;
+            b = 0;
+        } else {
+            // Σκούρο κόκκινο μετά τα 7 λεπτά
+            r = 139;
+            g = 0;
+            b = 0;
+        }
+        
+        progressElement.style.stroke = `rgb(${r}, ${g}, ${b})`;
+    }
+
+    clearExtraTimers() {
+        this.extraTimers = [];
+        if (this.elements.extraTimersContainer) {
+            this.elements.extraTimersContainer.innerHTML = '';
+            this.elements.extraTimersContainer.style.display = 'none';
+        }
+    }
+
     completeSetup() {
         if (this.currentPhase !== 'setup') return;
         const setupTime = Date.now() - this.setupStartTime;
@@ -139,8 +309,10 @@ class HeistTimer {
         this.updateButtonStates();
         this.updateStatus();
         this.updateProgress(0);
+        this.clearExtraTimers();
         this.saveToStorage();
     }
+
     startHeist() {
         if (this.currentPhase !== 'heist-ready') return;
         this.currentPhase = 'heist';
@@ -153,6 +325,7 @@ class HeistTimer {
         this.updateButtonStates();
         this.updateStatus();
     }
+
     completeHeist() {
         if (this.currentPhase !== 'heist') return;
         const heistTime = Date.now() - this.heistStartTime;
@@ -182,13 +355,16 @@ class HeistTimer {
         this.updateButtonStates();
         this.updateStatus();
         this.updateProgress(0);
+        this.clearExtraTimers();
         this.saveToStorage();
     }
+
     stopTimer() {
         this.isRunning = false;
         clearInterval(this.interval);
         this.interval = null;
     }
+
     reset(force = false) {
         if (!force) {
             this.showResetModal();
@@ -206,19 +382,23 @@ class HeistTimer {
         this.updateButtonStates();
         this.updateStatus();
         this.updateProgress(0);
+        this.clearExtraTimers();
         this.clearStorage();
         this.saveNameToStorage();
     }
+
     showResetModal() {
         if (this.elements.resetModal) {
             this.elements.resetModal.classList.add('show');
         }
     }
+
     hideResetModal() {
         if (this.elements.resetModal) {
             this.elements.resetModal.classList.remove('show');
         }
     }
+
     updateDisplay() {
         let displayTime = 0;
         switch (this.currentPhase) {
@@ -243,6 +423,7 @@ class HeistTimer {
         }
         this.elements.timerDisplay.textContent = this.formatTime(displayTime);
     }
+
     updateProgress(time) {
         if (this.currentPhase !== 'setup') {
             this.elements.timerProgress.style.strokeDashoffset = '565.48';
@@ -256,45 +437,22 @@ class HeistTimer {
         if (time <= sevenMinutes) {
             progress = time / sevenMinutes;
         } else {
-            const extraTime = time - sevenMinutes;
-            const slowFactor = 2;
-            progress = 1 + (extraTime / (sevenMinutes * slowFactor));
+            // Το κύριο timer σταματάει στα 7 λεπτά και μένει πλήρες
+            progress = 1;
         }
         
         const offset = circumference * (1 - Math.min(progress, 1));
         this.elements.timerProgress.style.strokeDashoffset = offset;
         
-        // Smooth color transition from green to orange to red to dark red
-        if (time < 60000) {
-            // Green to Yellow transition (0-1 min)
-            const progressToYellow = time / 60000;
-            const r = Math.floor(56 + (255 - 56) * progressToYellow);
-            const g = 184;
-            const b = Math.floor(184 - (184 - 0) * progressToYellow);
-            this.elements.timerProgress.style.stroke = `rgb(${r}, ${g}, ${b})`;
-        } else if (time < 300000) {
-            // Yellow to Orange to Red transition (1-5 min)
-            const progressToRed = (time - 60000) / 240000; // 4 minutes range
-            const r = 255;
-            const g = Math.floor(255 - (255 - 69) * progressToRed);
-            const b = 0;
-            this.elements.timerProgress.style.stroke = `rgb(${r}, ${g}, ${b})`;
-        } else if (time < 420000) {
-            // Red to Dark Red transition (5-7 min)
-            const progressToDarkRed = (time - 300000) / 120000; // 2 minutes range
-            const r = Math.floor(255 - (255 - 139) * progressToDarkRed);
-            const g = Math.floor(69 - (69 - 0) * progressToDarkRed);
-            const b = 0;
-            this.elements.timerProgress.style.stroke = `rgb(${r}, ${g}, ${b})`;
-        } else {
-            // Dark red after 7 minutes
-            this.elements.timerProgress.style.stroke = '#8B0000';
-        }
+        // Ομαλή μετάβαση χρωμάτων για το κύριο timer
+        this.updateTimerColor(this.elements.timerProgress, time);
     }
+
     updateStatus() {
         this.elements.timerStatus.textContent = this.getStatusText();
         this.elements.timerStatus.className = 'timer-status ' + this.currentPhase;
     }
+
     getStatusText() {
         switch (this.currentPhase) {
             case 'ready': return 'Ready';
@@ -305,6 +463,7 @@ class HeistTimer {
             default: return 'Ready';
         }
     }
+
     updateButtonStates() {
         this.elements.startSetupBtn.disabled = !['ready', 'heist-ready'].includes(this.currentPhase);
         this.elements.completeSetupBtn.disabled = this.currentPhase !== 'setup';
@@ -312,6 +471,7 @@ class HeistTimer {
         this.elements.completeHeistBtn.disabled = this.currentPhase !== 'heist';
         this.elements.resetBtn.disabled = false;
     }
+
     updateSetupDisplay() {
         if (this.setupTimes.length > 0) {
             const latest = this.setupTimes[0];
@@ -347,6 +507,7 @@ class HeistTimer {
             this.elements.setupList.appendChild(item);
         });
     }
+
     updateHeistDisplay() {
         if (this.heistTimes.length > 0) {
             const latest = this.heistTimes[0];
@@ -391,11 +552,13 @@ class HeistTimer {
             this.elements.heistList.appendChild(detailsEl);
         });
     }
+
     getTimeRating(time) {
         if (time < 60000) return 'good';
         if (time < 180000) return 'average';
         return 'slow';
     }
+
     updateSetupRatings() {
         if (!Array.isArray(this.setupTimes) || this.setupTimes.length === 0) {
             return;
@@ -424,6 +587,7 @@ class HeistTimer {
             }
         });
     }
+
     formatTime(milliseconds) {
         const totalSeconds = Math.floor(milliseconds / 1000);
         const minutes = Math.floor(totalSeconds / 60);
@@ -435,6 +599,7 @@ class HeistTimer {
             return `${seconds.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
         }
     }
+
     saveToStorage() {
         const timerData = {
             setupTimes: this.setupTimes,
@@ -449,6 +614,7 @@ class HeistTimer {
         };
         localStorage.setItem('heistTimer', JSON.stringify(timerData));
     }
+
     loadFromStorage() {
         const saved = localStorage.getItem('heistTimer');
         if (saved) {
@@ -482,9 +648,11 @@ class HeistTimer {
             this.updateDisplay();
         }
     }
+
     saveNameToStorage() {
         localStorage.setItem('currentHeistName', this.heistName || '');
     }
+
     loadNameFromStorage() {
         const savedName = localStorage.getItem('currentHeistName');
         this.heistName = savedName || '';
@@ -492,6 +660,7 @@ class HeistTimer {
             this.elements.heistNameInput.value = this.heistName;
         }
     }
+
     clearStorage() {
         this.setupTimes = [];
         this.heistTimes = [];
@@ -502,6 +671,7 @@ class HeistTimer {
         localStorage.removeItem('heistTimer');
     }
 }
+
 document.addEventListener('DOMContentLoaded', () => {
     window.heistTimer = new HeistTimer();
 });
