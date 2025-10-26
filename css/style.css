@@ -501,9 +501,9 @@ body {
  * current-setup/total-time cards.
  */
 .times-summary {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-md);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-sm);
     margin-bottom: var(--space-md);
 }
 

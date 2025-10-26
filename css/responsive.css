@@ -93,19 +93,24 @@
         align-self: center;
     }
     
-    /* FIXED: Setup times grid */
+    /* FIXED: Setup times grid - δύο στήλες για κινητά */
     .times-summary {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
         gap: var(--space-sm);
         margin-bottom: var(--space-md);
     }
     
     .times-summary > .current-setup,
     .times-summary > .setup-total {
-        flex: none;
+        flex: none !important;
         min-height: auto;
         margin: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-width: 0;
+        width: 100%;
     }
     
     /* Enhanced timer positioning for mobile */
@@ -168,21 +173,11 @@
         flex-direction: column;
     }
     
-    /* FIXED: Single column για πολύ μικρές οθόνες */
+    /* FIXED: Διατήρηση δύο στηλών για setup times */
     .times-summary {
-        grid-template-columns: 1fr;
-        gap: var(--space-xs);
+        grid-template-columns: 1fr 1fr !important;
+        gap: var(--space-sm);
     }
-    
-    /*
-     * NOTE: Previously, the timer controls were forced into a single column
-     * layout on all screens up to 480px wide. This caused an issue where
-     * devices like the iPhone 13 Pro Max (428px wide) showed the buttons
-     * stacked vertically when there was still enough room for two columns.
-     * The single‑column layout has been moved into a narrower breakpoint
-     * (see below) so that devices wider than 420px keep the two‑column
-     * arrangement defined in the 768px breakpoint above.
-     */
     
     /* Extra small screens timer fix */
     .timer-display {
@@ -193,7 +188,6 @@
         margin: 0 !important;
     }
 }
-
 
 /* iPhone 13 Pro Max specific fixes */
 @media (max-width: 428px) {
@@ -232,23 +226,29 @@
         grid-row: 3;
     }
     
+    /* FIXED: Διατήρηση δύο στηλών για setup times */
     .times-summary {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr 1fr !important;
+        gap: var(--space-sm);
     }
 }
 
 /*
  * Breakpoint for ultra‑small screens: stack the timer controls vertically.
- * This rule applies only to devices up to 420px wide, avoiding the issue on
- * devices like the iPhone 13 Pro Max (428px) that still have room for two
- * columns.  Placing this rule after the 428px breakpoint ensures that it
- * takes precedence for narrower widths.
+ * Μόνο για πολύ μικρές οθόνες αλλάζουμε τα setup times σε μία στήλη
  */
 @media (max-width: 420px) {
     .timer-controls {
         grid-template-columns: 1fr;
         gap: var(--space-sm);
     }
+    
+    /* FIXED: Μόνο για πολύ μικρές οθόνες - μία στήλη για setup times */
+    .times-summary {
+        grid-template-columns: 1fr !important;
+        gap: var(--space-xs);
+    }
+    
     /* Place each control in its own row for the single‑column layout */
     #startSetupBtn,
     #completeSetupBtn,
@@ -281,6 +281,17 @@
     }
     .setup-time, .heist-time {
         font-size: 1.1rem;
+    }
+    
+    /* Βελτίωση για πολύ μικρές οθόνες */
+    .times-summary > .current-setup,
+    .times-summary > .setup-total {
+        min-width: 120px;
+        padding: var(--space-sm);
+    }
+    
+    .setup-total-time {
+        font-size: 1.3rem;
     }
 }
 
@@ -328,6 +339,12 @@
     
     .timer-display {
         font-size: 1rem;
+    }
+    
+    /* Landscape mode: keep times side by side */
+    .times-summary {
+        grid-template-columns: 1fr 1fr !important;
+        gap: var(--space-sm);
     }
 }
 
