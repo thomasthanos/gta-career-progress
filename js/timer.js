@@ -9,7 +9,7 @@ class HeistTimer {
     constructor() {
         this.interval = null;
         this.isRunning = false;
-        this.currentPhase = 'ready'; // ready, setup, heist-ready, heist, completed
+        this.currentPhase = 'ready';
         this.startTime = 0;
         this.elapsedTime = 0;
         this.setupStartTime = 0;
@@ -17,21 +17,8 @@ class HeistTimer {
         this.setupTimes = [];
         this.heistTimes = [];
         this.currentSetupTime = 0;
-        // Store the most recently completed setup duration so it can be
-        // displayed while in the 'heist-ready' phase. Without this
-        // property the timer display would show the total elapsed time
-        // from the very first setup start, which can be confusing for
-        // users wanting to see the just-finished setup duration.
         this.lastSetupDuration = 0;
-
-        // The cumulative duration of all completed setups. This value is
-        // used to allow the clock to continue counting across multiple
-        // setup phases without resetting to zero each time. When a
-        // setup is completed, its duration is added to this total.
         this.setupElapsedTotal = 0;
-        // Name for the current heist or mission. This can be assigned by
-        // the user via an input field and is stored alongside each
-        // setup entry.
         this.heistName = '';
         this.elements = {
             timerDisplay: document.getElementById('timerDisplay'),
@@ -47,12 +34,10 @@ class HeistTimer {
             setupList: document.getElementById('setupList'),
             heistList: document.getElementById('heistList')
         };
-        // Additional DOM elements used for custom interactions
         this.elements.heistNameInput = document.getElementById('heistNameInput');
         this.elements.resetModal = document.getElementById('resetModal');
         this.elements.confirmResetBtn = document.getElementById('confirmResetBtn');
         this.elements.cancelResetBtn = document.getElementById('cancelResetBtn');
-        // Element to show the cumulative time of all completed setups
         this.elements.setupTotalTime = document.getElementById('setupTotalTime');
         this.init();
     }
@@ -70,9 +55,7 @@ class HeistTimer {
         this.elements.completeSetupBtn.addEventListener('click', () => this.completeSetup());
         this.elements.startHeistBtn.addEventListener('click', () => this.startHeist());
         this.elements.completeHeistBtn.addEventListener('click', () => this.completeHeist());
-        // Use custom modal for reset instead of default confirm dialog
         this.elements.resetBtn.addEventListener('click', () => this.reset());
-        // Bind confirm and cancel buttons on the reset modal
         if (this.elements.confirmResetBtn) {
             this.elements.confirmResetBtn.addEventListener('click', () => {
                 this.hideResetModal();
@@ -82,16 +65,13 @@ class HeistTimer {
         if (this.elements.cancelResetBtn) {
             this.elements.cancelResetBtn.addEventListener('click', () => this.hideResetModal());
         }
-        // Bind heist name input to update the name property and persist it
         if (this.elements.heistNameInput) {
             this.elements.heistNameInput.addEventListener('input', () => {
                 this.heistName = this.elements.heistNameInput.value;
                 this.saveNameToStorage();
             });
         }
-        // Global keyboard shortcuts. Ignore space presses when focused on input or textarea.
         document.addEventListener('keydown', (e) => {
-            // Determine if the event target is an editable field
             const targetTag = e.target && e.target.tagName ? e.target.tagName.toLowerCase() : '';
             const isEditable = targetTag === 'input' || targetTag === 'textarea' || e.target.isContentEditable;
             if (e.code === 'Space' && !e.ctrlKey && !isEditable) {
@@ -99,7 +79,6 @@ class HeistTimer {
                 this.handleSpacePress();
             } else if (e.code === 'KeyR' && e.ctrlKey) {
                 e.preventDefault();
-                // Show custom reset modal on Ctrl+R
                 this.reset();
             }
         });
@@ -125,14 +104,11 @@ class HeistTimer {
         this.currentPhase = 'setup';
         this.isRunning = true;
         this.setupStartTime = Date.now();
-        // If this is the first setup, start the main timer
         if (this.setupTimes.length === 0) {
             this.startTime = Date.now();
         }
         this.interval = setInterval(() => {
-            // Time elapsed since the beginning of this setup phase
             this.currentSetupTime = Date.now() - this.setupStartTime;
-            // Total time across all setups so far, plus the current one
             this.elapsedTime = this.setupElapsedTotal + this.currentSetupTime;
             this.updateDisplay();
             this.updateProgress(this.currentSetupTime);
@@ -143,37 +119,27 @@ class HeistTimer {
     completeSetup() {
         if (this.currentPhase !== 'setup') return;
         const setupTime = Date.now() - this.setupStartTime;
-        // Add this setup's duration to the cumulative total so the
-        // next setup can continue counting from where it left off.
         this.setupElapsedTotal += setupTime;
         const setupData = {
             time: setupTime,
             formatted: this.formatTime(setupTime),
             timestamp: Date.now(),
-            // Rating will be assigned dynamically after all setups are evaluated
             rating: '',
-            // Store the heist/mission name at the time of completion
             name: this.heistName || ''
         };
         this.setupTimes.unshift(setupData);
-        // Remember this setup's duration for display while in 'heist-ready'
         this.lastSetupDuration = setupTime;
-        // Update total elapsed time (across all completed setups). When the
-        // timer is paused, updateDisplay will read this.elapsedTime.
         this.elapsedTime = this.setupElapsedTotal;
         this.currentSetupTime = 0;
         this.currentPhase = 'heist-ready';
         this.stopTimer();
-        // Recompute ratings so the fastest lap is green and slowest is red
         this.updateSetupRatings();
         this.updateSetupDisplay();
-        // Update the main display to reset the central timer after each setup
         this.updateDisplay();
         this.updateButtonStates();
         this.updateStatus();
         this.updateProgress(0);
         this.saveToStorage();
-        // Visual feedback removed; the 3D button styling handles pressed state
     }
     startHeist() {
         if (this.currentPhase !== 'heist-ready') return;
@@ -181,7 +147,6 @@ class HeistTimer {
         this.heistStartTime = Date.now();
         this.isRunning = true;
         this.interval = setInterval(() => {
-            // Total time across setups and the current heist phase
             this.elapsedTime = this.setupElapsedTotal + (Date.now() - this.heistStartTime);
             this.updateDisplay();
         }, 10);
@@ -191,7 +156,6 @@ class HeistTimer {
     completeHeist() {
         if (this.currentPhase !== 'heist') return;
         const heistTime = Date.now() - this.heistStartTime;
-        // Total time across all setups and the heist phase
         const totalTime = this.setupElapsedTotal + heistTime;
         const heistData = {
             time: heistTime,
@@ -199,16 +163,11 @@ class HeistTimer {
             totalTime: this.formatTime(totalTime),
             timestamp: Date.now(),
             setupCount: this.setupTimes.length,
-            // Preserve the heist name so it can be displayed in the history
             name: this.heistName || '',
-            // Deep copy of the setup laps for this heist, including name and rating
             setups: this.setupTimes.map(s => Object.assign({}, s))
         };
-        // Append this heist run to the history at the top
         this.heistTimes.unshift(heistData);
-        // Stop the current timer interval
         this.stopTimer();
-        // Reset state for a new heist without clearing history
         this.currentPhase = 'ready';
         this.setupTimes = [];
         this.setupElapsedTotal = 0;
@@ -217,14 +176,12 @@ class HeistTimer {
         this.startTime = 0;
         this.setupStartTime = 0;
         this.heistStartTime = 0;
-        // Update UI to reflect the reset state and show the new heist history
         this.updateSetupDisplay();
         this.updateHeistDisplay();
         this.updateDisplay();
         this.updateButtonStates();
         this.updateStatus();
         this.updateProgress(0);
-        // Persist new state to local storage
         this.saveToStorage();
     }
     stopTimer() {
@@ -233,7 +190,6 @@ class HeistTimer {
         this.interval = null;
     }
     reset(force = false) {
-        // Without force, show the custom confirmation modal
         if (!force) {
             this.showResetModal();
             return;
@@ -251,47 +207,32 @@ class HeistTimer {
         this.updateStatus();
         this.updateProgress(0);
         this.clearStorage();
-        // Persist the current heist name (do not clear it on reset)
         this.saveNameToStorage();
     }
-
-    /**
-     * Show the custom reset confirmation modal
-     */
     showResetModal() {
         if (this.elements.resetModal) {
             this.elements.resetModal.classList.add('show');
         }
     }
-
-    /**
-     * Hide the reset confirmation modal
-     */
     hideResetModal() {
         if (this.elements.resetModal) {
             this.elements.resetModal.classList.remove('show');
         }
     }
     updateDisplay() {
-        // Determine which time to display based on the current phase
         let displayTime = 0;
         switch (this.currentPhase) {
             case 'setup':
-                // During setup, only show the time elapsed in the current lap
                 displayTime = this.currentSetupTime;
                 break;
             case 'heist-ready':
-                // Between setups and heist start, reset the display to zero
                 displayTime = 0;
                 break;
             case 'heist':
-                // During the heist, add the cumulative setup time to the ongoing heist
                 displayTime = this.setupElapsedTotal + (Date.now() - this.heistStartTime);
                 break;
             case 'completed':
-                // After a heist completes, display the sum of all setups plus the last heist
                 if (this.heistTimes.length > 0) {
-                    // heistTimes[0].time holds the duration of the last heist phase
                     displayTime = this.setupElapsedTotal + this.heistTimes[0].time;
                 } else {
                     displayTime = this.setupElapsedTotal;
@@ -307,18 +248,47 @@ class HeistTimer {
             this.elements.timerProgress.style.strokeDashoffset = '565.48';
             return;
         }
-        // Assuming 5 minutes max for setup
-        const maxTime = 5 * 60 * 1000; // 5 minutes in milliseconds
-        const progress = Math.min(time / maxTime, 1);
-        const offset = 565.48 * (1 - progress);
+        
+        const circumference = 2 * Math.PI * 90;
+        const sevenMinutes = 7 * 60 * 1000;
+        
+        let progress;
+        if (time <= sevenMinutes) {
+            progress = time / sevenMinutes;
+        } else {
+            const extraTime = time - sevenMinutes;
+            const slowFactor = 2;
+            progress = 1 + (extraTime / (sevenMinutes * slowFactor));
+        }
+        
+        const offset = circumference * (1 - Math.min(progress, 1));
         this.elements.timerProgress.style.strokeDashoffset = offset;
-        // Change color based on time
-        if (time < 60000) { // Under 1 minute - good
-            this.elements.timerProgress.style.stroke = 'var(--success)';
-        } else if (time < 180000) { // 1-3 minutes - average
-            this.elements.timerProgress.style.stroke = 'var(--warning)';
-        } else { // Over 3 minutes - slow
-            this.elements.timerProgress.style.stroke = 'var(--danger)';
+        
+        // Smooth color transition from green to orange to red to dark red
+        if (time < 60000) {
+            // Green to Yellow transition (0-1 min)
+            const progressToYellow = time / 60000;
+            const r = Math.floor(56 + (255 - 56) * progressToYellow);
+            const g = 184;
+            const b = Math.floor(184 - (184 - 0) * progressToYellow);
+            this.elements.timerProgress.style.stroke = `rgb(${r}, ${g}, ${b})`;
+        } else if (time < 300000) {
+            // Yellow to Orange to Red transition (1-5 min)
+            const progressToRed = (time - 60000) / 240000; // 4 minutes range
+            const r = 255;
+            const g = Math.floor(255 - (255 - 69) * progressToRed);
+            const b = 0;
+            this.elements.timerProgress.style.stroke = `rgb(${r}, ${g}, ${b})`;
+        } else if (time < 420000) {
+            // Red to Dark Red transition (5-7 min)
+            const progressToDarkRed = (time - 300000) / 120000; // 2 minutes range
+            const r = Math.floor(255 - (255 - 139) * progressToDarkRed);
+            const g = Math.floor(69 - (69 - 0) * progressToDarkRed);
+            const b = 0;
+            this.elements.timerProgress.style.stroke = `rgb(${r}, ${g}, ${b})`;
+        } else {
+            // Dark red after 7 minutes
+            this.elements.timerProgress.style.stroke = '#8B0000';
         }
     }
     updateStatus() {
@@ -343,7 +313,6 @@ class HeistTimer {
         this.elements.resetBtn.disabled = false;
     }
     updateSetupDisplay() {
-        // Update current setup time and cumulative setup total
         if (this.setupTimes.length > 0) {
             const latest = this.setupTimes[0];
             this.elements.currentSetupTime.textContent = latest.formatted;
@@ -353,7 +322,6 @@ class HeistTimer {
             this.elements.currentSetupTime.className = 'setup-time';
         }
 
-        // Always update the total setup time display using the cumulative elapsed total
         if (this.elements.setupTotalTime) {
             if (this.setupElapsedTotal > 0) {
                 this.elements.setupTotalTime.textContent = this.formatTime(this.setupElapsedTotal);
@@ -361,7 +329,6 @@ class HeistTimer {
                 this.elements.setupTotalTime.textContent = '--:--';
             }
         }
-        // Update setup list
         this.elements.setupList.innerHTML = '';
         if (this.setupTimes.length === 0) {
             this.elements.setupList.innerHTML = '<div class="empty-state">No setups recorded yet</div>';
@@ -370,7 +337,6 @@ class HeistTimer {
         this.setupTimes.slice(0, 5).forEach((setup, index) => {
             const item = document.createElement('div');
             item.className = 'setup-item';
-            // Use provided name if available; otherwise fallback to numbered label
             const nameLabel = setup.name && setup.name.trim()
                 ? setup.name
                 : `Setup ${this.setupTimes.length - index}`;
@@ -382,44 +348,35 @@ class HeistTimer {
         });
     }
     updateHeistDisplay() {
-        // Update total heist time
         if (this.heistTimes.length > 0) {
             const latest = this.heistTimes[0];
             this.elements.totalHeistTime.textContent = latest.totalTime;
         } else {
             this.elements.totalHeistTime.textContent = '--:--';
         }
-        // Update heist list with collapsible details
         this.elements.heistList.innerHTML = '';
         if (this.heistTimes.length === 0) {
             this.elements.heistList.innerHTML = '<div class="empty-state">No heists completed yet</div>';
             return;
         }
-        // Only display the most recent 5 heists for brevity
         this.heistTimes.slice(0, 5).forEach((heist, index) => {
-            // Determine a display name; fall back to sequential numbering if none provided
             const heistLabel = heist.name && heist.name.trim()
                 ? heist.name
                 : `Heist ${this.heistTimes.length - index}`;
-            // Create a details element to allow collapsing/expanding
             const detailsEl = document.createElement('details');
             detailsEl.className = 'heist-item';
-            // Construct the summary row with heist name and total time
             const summaryEl = document.createElement('summary');
             summaryEl.innerHTML = `
                 <span>${heistLabel} (${heist.setupCount} setups)</span>
                 <span class="heist-time-display">${heist.totalTime}</span>
             `;
             detailsEl.appendChild(summaryEl);
-            // If this heist has recorded setup laps, list them below
             if (Array.isArray(heist.setups) && heist.setups.length > 0) {
                 const setupsContainer = document.createElement('div');
                 setupsContainer.className = 'heist-setups';
-                // Iterate in reverse chronological order so the first recorded setup is at the bottom
                 heist.setups.forEach((setup) => {
                     const setupItem = document.createElement('div');
                     setupItem.className = 'heist-setup-item';
-                    // Use stored name or fallback label
                     const setupName = setup.name && setup.name.trim()
                         ? setup.name
                         : 'Setup';
@@ -435,23 +392,14 @@ class HeistTimer {
         });
     }
     getTimeRating(time) {
-        if (time < 60000) return 'good';      // Under 1 minute
-        if (time < 180000) return 'average';  // 1-3 minutes
-        return 'slow';                        // Over 3 minutes
+        if (time < 60000) return 'good';
+        if (time < 180000) return 'average';
+        return 'slow';
     }
-
-    /**
-     * Dynamically assign ratings to setup laps based on relative performance.
-     * The fastest lap (shortest time) is marked 'good', the slowest lap (longest time)
-     * is marked 'slow', and all other laps are marked 'average'. This method
-     * recalculates ratings each time a setup completes so that only one lap
-     * holds each of the good/slow statuses.
-     */
     updateSetupRatings() {
         if (!Array.isArray(this.setupTimes) || this.setupTimes.length === 0) {
             return;
         }
-        // Identify the indices of the fastest (minimum time) and slowest (maximum time)
         let minIndex = 0;
         let maxIndex = 0;
         let minTime = this.setupTimes[0].time;
@@ -466,7 +414,6 @@ class HeistTimer {
                 maxIndex = index;
             }
         });
-        // Assign ratings based on the min/max indices
         this.setupTimes.forEach((setup, index) => {
             if (index === minIndex) {
                 setup.rating = 'good';
@@ -493,16 +440,11 @@ class HeistTimer {
             setupTimes: this.setupTimes,
             heistTimes: this.heistTimes,
             currentPhase: this.currentPhase,
-            // Total time across setups and current heist phase
             elapsedTime: this.elapsedTime,
-            // Sum of durations of all completed setups
             setupElapsedTotal: this.setupElapsedTotal,
-            // Timestamp marking the overall timer start
             startTime: this.startTime,
-            // Timestamp marking the current setup or heist start
             setupStartTime: this.setupStartTime,
             heistStartTime: this.heistStartTime,
-            // The last completed setup duration
             lastSetupDuration: this.lastSetupDuration
         };
         localStorage.setItem('heistTimer', JSON.stringify(timerData));
@@ -514,31 +456,24 @@ class HeistTimer {
             this.setupTimes = timerData.setupTimes || [];
             this.heistTimes = timerData.heistTimes || [];
             this.currentPhase = timerData.currentPhase || 'ready';
-            // If the saved state was 'completed' (from a finished heist), switch to 'ready'
             if (this.currentPhase === 'completed') {
                 this.currentPhase = 'ready';
             }
-            // Sum all completed setup durations to compute cumulative total
             this.setupElapsedTotal = 0;
             this.setupTimes.forEach(s => {
                 if (typeof s.time === 'number') {
                     this.setupElapsedTotal += s.time;
                 }
             });
-            // Load total elapsed time if available; otherwise derive from
-            // setupElapsedTotal (heist time will be added during a running heist)
             this.elapsedTime = timerData.elapsedTime || this.setupElapsedTotal;
-            // Restore start timestamps if available
             this.startTime = timerData.startTime || 0;
             this.setupStartTime = timerData.setupStartTime || 0;
             this.heistStartTime = timerData.heistStartTime || 0;
-            // Determine the last setup duration from saved setupTimes or saved value
             if (this.setupTimes.length > 0) {
                 this.lastSetupDuration = this.setupTimes[0].time || 0;
             } else {
                 this.lastSetupDuration = timerData.lastSetupDuration || 0;
             }
-            // Recompute ratings in case the best or worst laps have changed
             this.updateSetupRatings();
             this.updateSetupDisplay();
             this.updateHeistDisplay();
@@ -547,16 +482,9 @@ class HeistTimer {
             this.updateDisplay();
         }
     }
-    /**
-     * Persist the current heist name to localStorage under a separate key.
-     * This allows the name to be restored after a page reload.
-     */
     saveNameToStorage() {
         localStorage.setItem('currentHeistName', this.heistName || '');
     }
-    /**
-     * Load the heist name from localStorage and populate the input field.
-     */
     loadNameFromStorage() {
         const savedName = localStorage.getItem('currentHeistName');
         this.heistName = savedName || '';

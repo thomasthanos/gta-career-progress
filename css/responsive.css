@@ -69,6 +69,63 @@
     .times-summary > .setup-total {
         flex: none;
     }
+    
+    /* Enhanced timer positioning for mobile */
+    .timer-display-container {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: var(--space-lg);
+    }
+    
+    .timer-circle {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    /* Improved grid layout for setup times */
+    .times-summary {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-sm);
+    }
+    
+    .times-summary > .current-setup,
+    .times-summary > .setup-total {
+        flex: none;
+        min-height: auto;
+    }
+    
+    /* Better button grouping */
+    .timer-controls {
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-sm);
+    }
+    
+    /* Pair setup buttons side by side */
+    .timer-controls #startSetupBtn {
+        grid-column: 1;
+    }
+    
+    .timer-controls #completeSetupBtn {
+        grid-column: 2;
+    }
+    
+    /* Pair heist buttons side by side */
+    .timer-controls #startHeistBtn {
+        grid-column: 1;
+    }
+    
+    .timer-controls #completeHeistBtn {
+        grid-column: 2;
+    }
+    
+    /* Reset button takes full width */
+    .timer-controls #resetBtn {
+        grid-column: 1 / -1;
+    }
 }
 
 @media (max-width: 480px) {
@@ -112,6 +169,32 @@
     }
     .modal-actions {
         flex-direction: column;
+    }
+    
+    .times-summary {
+        grid-template-columns: 1fr;
+        gap: var(--space-xs);
+    }
+    
+    .timer-controls {
+        grid-template-columns: 1fr;
+    }
+    
+    .timer-controls #startSetupBtn,
+    .timer-controls #completeSetupBtn,
+    .timer-controls #startHeistBtn,
+    .timer-controls #completeHeistBtn,
+    .timer-controls #resetBtn {
+        grid-column: 1;
+    }
+    
+    /* Extra small screens timer fix */
+    .timer-display {
+        position: absolute;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        margin: 0 !important;
     }
 }
 
@@ -166,6 +249,19 @@
     .btn {
         padding: var(--space-xs) var(--space-sm);
         min-height: 40px;
+    }
+    
+    .timer-display-container {
+        margin-bottom: var(--space-md);
+    }
+    
+    .timer-circle {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .timer-display {
+        font-size: 1rem;
     }
 }
 

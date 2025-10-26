@@ -52,6 +52,10 @@
     --warning-light: #ffb84d;
     --danger-light: #ff4c97;
 
+    /* Dark red for very slow setups */
+    --dark-red: #8B0000;
+    --dark-red-dark: #600000;
+
     /* Spacing scale (multiples of 0.5rem for harmony) */
     --space-xs: 0.5rem;
     --space-sm: 1rem;
@@ -70,13 +74,6 @@
     --border-radius-sm: 8px;
     --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     --box-shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.2);
-
-    /* Default semantic assignments (dark theme) */
-    --bg: var(--dark-bg);
-    --card-bg: var(--dark-card);
-    --border-colour: var(--dark-border);
-    --text-colour: var(--dark-text);
-    --muted-colour: var(--dark-muted);
 }
 
 /* Light theme overrides. When the `data-theme="light"` attribute
@@ -214,6 +211,7 @@ body {
 .theme-btn:hover:not(:disabled) {
     filter: brightness(1.1);
 }
+
 .theme-btn:active:not(:disabled) {
     box-shadow: 0 2px 0 var(--theme-btn-color-dark);
 }
@@ -230,6 +228,7 @@ body {
     --theme-btn-color-dark: var(--warning-dark);
     --theme-btn-color-light: var(--warning-light);
 }
+
 [data-theme="light"] .theme-btn {
     /* In light theme, display a cool palette to hint at switching to dark mode */
     --theme-btn-color: var(--primary);
@@ -295,7 +294,8 @@ body {
  * Timer card styles
  */
 .timer-card {
-    grid-column: 1 / -1; /* timer spans both columns by default */
+    grid-column: 1 / -1;
+    /* timer spans both columns by default */
 }
 
 .timer-status {
@@ -308,11 +308,25 @@ body {
 }
 
 /* Status colours by state. These classes are toggled via JS. */
-.timer-status.ready { background: var(--muted-colour); }
-.timer-status.setup { background: var(--primary); }
-.timer-status.heist-ready { background: var(--warning); }
-.timer-status.heist { background: var(--warning-dark); }
-.timer-status.completed { background: var(--success); }
+.timer-status.ready {
+    background: var(--muted-colour);
+}
+
+.timer-status.setup {
+    background: var(--primary);
+}
+
+.timer-status.heist-ready {
+    background: var(--warning);
+}
+
+.timer-status.heist {
+    background: var(--warning-dark);
+}
+
+.timer-status.completed {
+    background: var(--success);
+}
 
 /* Timer display container */
 .timer-display-container {
@@ -320,12 +334,25 @@ body {
     margin-bottom: var(--space-lg);
 }
 
-/* Circular progress container */
+/* Enhanced timer circle positioning */
 .timer-circle {
     position: relative;
     width: 200px;
     height: 200px;
     margin: 0 auto;
+}
+
+.timer-display {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: var(--monospace-font);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-colour);
+    text-align: center;
+    width: 100%;
 }
 
 .timer-progress {
@@ -345,19 +372,7 @@ body {
     stroke-linecap: round;
     stroke-dasharray: 565.48;
     stroke-dashoffset: 565.48;
-    transition: stroke-dashoffset 1s linear;
-}
-
-/* Numeric timer text */
-.timer-display {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-family: var(--monospace-font);
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--text-colour);
+    transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease;
 }
 
 /* Timer control buttons grid */
@@ -452,11 +467,13 @@ body {
     color: var(--btn-color);
     box-shadow: none;
 }
+
 .btn-outline:hover:not(:disabled) {
     background: var(--btn-color);
     color: #ffffff;
     filter: none;
 }
+
 .btn-outline:not(:disabled):active {
     background: var(--btn-color-dark);
     color: #ffffff;
@@ -489,8 +506,9 @@ body {
     gap: var(--space-md);
     margin-bottom: var(--space-md);
 }
-.times-summary > .current-setup,
-.times-summary > .setup-total {
+
+.times-summary>.current-setup,
+.times-summary>.setup-total {
     flex: 1 1 0;
     text-align: center;
     padding: var(--space-md);
@@ -498,11 +516,13 @@ body {
     border: 1px solid var(--border-colour);
     border-radius: var(--border-radius-sm);
 }
+
 .setup-total h3 {
     font-size: 0.9rem;
     color: var(--muted-colour);
     margin-bottom: var(--space-xs);
 }
+
 .setup-total-time {
     font-family: var(--monospace-font);
     font-size: 2rem;
@@ -535,9 +555,17 @@ body {
 }
 
 /* Colour coding for setup times */
-.setup-time.good { color: var(--success); }
-.setup-time.average { color: var(--muted-colour); }
-.setup-time.slow { color: var(--danger); }
+.setup-time.good {
+    color: var(--success);
+}
+
+.setup-time.average {
+    color: var(--muted-colour);
+}
+
+.setup-time.slow {
+    color: var(--danger);
+}
 
 /* Histories */
 .setup-history h3,
@@ -581,6 +609,7 @@ body {
     cursor: pointer;
     list-style: none;
 }
+
 /* Remove default triangle marker */
 .heist-item summary::-webkit-details-marker {
     display: none;
@@ -594,6 +623,7 @@ body {
     padding: var(--space-sm);
     border-top: 1px solid var(--border-colour);
 }
+
 .heist-setup-item {
     display: flex;
     justify-content: space-between;
@@ -621,68 +651,23 @@ body {
     font-weight: 600;
 }
 
-.setup-time-display.good { color: var(--success); }
-.setup-time-display.average { color: var(--muted-colour); }
-.setup-time-display.slow { color: var(--danger); }
+.setup-time-display.good {
+    color: var(--success);
+}
+
+.setup-time-display.average {
+    color: var(--muted-colour);
+}
+
+.setup-time-display.slow {
+    color: var(--danger);
+}
 
 .empty-state {
     text-align: center;
     color: var(--muted-colour);
     font-style: italic;
     padding: var(--space-md);
-}
-
-/* --------------------------------------------------
- * Notepad styles
- */
-.notepad-card {
-    grid-column: 1 / -1;
-}
-
-.notepad-container {
-    display: flex;
-    flex-direction: column;
-    height: 300px;
-}
-
-.notepad {
-    flex: 1;
-    width: 100%;
-    padding: var(--space-md);
-    font-family: var(--font-family);
-    font-size: 0.9rem;
-    line-height: var(--base-line-height);
-    background: var(--bg);
-    color: var(--text-colour);
-    border: 1px solid var(--border-colour);
-    border-radius: var(--border-radius-sm);
-    resize: none;
-    transition: background var(--transition-speed) ease, color var(--transition-speed) ease, border-color var(--transition-speed) ease;
-}
-
-.notepad:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 2px rgba(58, 134, 255, 0.2);
-}
-
-.notepad-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: var(--space-sm);
-    padding-top: var(--space-sm);
-    border-top: 1px solid var(--border-colour);
-}
-
-.notepad-stats {
-    font-size: 0.8rem;
-    color: var(--muted-colour);
-}
-
-.notepad-actions {
-    display: flex;
-    gap: var(--space-sm);
 }
 
 /* --------------------------------------------------
@@ -819,23 +804,23 @@ body {
         width: 140px;
         height: 140px;
     }
-    
+
     .timer-progress-bg,
     .timer-progress-fill {
         stroke-width: 6;
     }
-    
+
     /* Better button spacing */
     .timer-controls .btn {
         justify-content: center;
         text-align: center;
     }
-    
+
     /* Improved card spacing */
     .card {
         margin-bottom: var(--space-sm);
     }
-    
+
     /* Better list readability */
     .setup-item,
     .heist-item summary {
@@ -867,11 +852,45 @@ body {
         width: 90%;
         margin: 0 auto;
     }
-    
+
     .modal-actions .btn {
         flex: 1;
     }
 }
+
+/* Mobile fixes for timer display */
+@media (max-width: 768px) {
+    .timer-circle {
+        width: 180px;
+        height: 180px;
+    }
+
+    .timer-display {
+        font-size: 1.6rem;
+    }
+
+    .timer-progress {
+        width: 180px;
+        height: 180px;
+    }
+}
+
+@media (max-width: 480px) {
+    .timer-circle {
+        width: 150px;
+        height: 150px;
+    }
+
+    .timer-display {
+        font-size: 1.3rem;
+    }
+
+    .timer-progress {
+        width: 150px;
+        height: 150px;
+    }
+}
+
 /* Screen reader only text */
 .sr-only {
     position: absolute;
