@@ -332,6 +332,11 @@ body {
 .timer-display-container {
     text-align: center;
     margin-bottom: var(--space-lg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
 }
 
 /* Enhanced timer circle positioning */
@@ -339,7 +344,6 @@ body {
     position: relative;
     width: 200px;
     height: 200px;
-    margin: 0 auto;
 }
 
 .timer-display {
@@ -903,96 +907,109 @@ body {
     white-space: nowrap;
     border: 0;
 }
-/* Extra timers styles */
+
+/* Extra timers container - δίπλα στο κύριο timer */
 .extra-timers-container {
-    margin-top: 20px;
-    padding-top: 15px;
-    border-top: 1px solid var(--border-colour);
+    display: none;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    align-items: flex-start;
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
 }
 
+/* Extra timer - ίδιο design με το κύριο timer */
 .extra-timer {
     display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 10px;
-    border: 1px solid var(--border-colour);
-    border-radius: 8px;
-    margin-bottom: 10px;
-    background: var(--card-bg);
-    transition: all 0.3s ease;
-}
-
-.extra-timer:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.extra-timer-header {
-    display: flex;
     flex-direction: column;
-    gap: 5px;
-    flex: 1;
+    align-items: center;
+    gap: 10px;
+    padding: 15px;
 }
 
-.extra-timer-title {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--text-colour);
-}
-
-.extra-timer-time {
-    font-family: var(--monospace-font);
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: var(--text-colour);
-}
-
-.extra-timer-progress-container {
+.extra-timer .timer-circle {
+    width: 200px;
+    height: 200px;
     position: relative;
-    width: 60px;
-    height: 60px;
 }
 
-.extra-timer-progress {
-    transform: rotate(-90deg);
-    width: 60px;
-    height: 60px;
+.extra-timer .timer-progress {
+    width: 200px;
+    height: 200px;
 }
 
-.extra-timer-progress-bg {
+.extra-timer .timer-progress-bg {
     fill: none;
     stroke: var(--border-colour);
-    stroke-width: 4;
+    stroke-width: 8;
 }
 
-.extra-timer-progress-fill {
+.extra-timer .timer-progress-fill {
     fill: none;
     stroke: var(--primary);
-    stroke-width: 4;
+    stroke-width: 8;
     stroke-linecap: round;
-    stroke-dasharray: 339.292;
-    stroke-dashoffset: 339.292;
+    stroke-dasharray: 565.48;
+    stroke-dashoffset: 565.48;
     transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease;
 }
 
-/* Responsive adjustments for extra timers */
+.extra-timer .extra-timer-display {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: var(--monospace-font);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-colour);
+    text-align: center;
+    width: 100%;
+}
+
+.extra-timer-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-colour);
+    text-align: center;
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
-    .extra-timer {
+    .extra-timers-container {
         flex-direction: column;
-        text-align: center;
-        gap: 10px;
-    }
-    
-    .extra-timer-header {
         align-items: center;
     }
     
-    .extra-timer-progress-container {
-        width: 50px;
-        height: 50px;
+    .extra-timer .timer-circle {
+        width: 180px;
+        height: 180px;
     }
     
-    .extra-timer-progress {
-        width: 50px;
-        height: 50px;
+    .extra-timer .timer-progress {
+        width: 180px;
+        height: 180px;
+    }
+    
+    .extra-timer .extra-timer-display {
+        font-size: 1.6rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .extra-timer .timer-circle {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .extra-timer .timer-progress {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .extra-timer .extra-timer-display {
+        font-size: 1.3rem;
     }
 }

@@ -21,6 +21,7 @@ class HeistTimer {
         this.setupElapsedTotal = 0;
         this.heistName = '';
         this.extraTimers = []; // Array για τα επιπλέον timers μετά τα 7 λεπτά
+        this.mainTimerStoppedAt = 0; // Χρόνος που σταμάτησε το κύριο timer
         
         this.elements = {
             timerDisplay: document.getElementById('timerDisplay'),
@@ -49,17 +50,14 @@ class HeistTimer {
     }
 
     createExtraTimersContainer() {
-        // Δημιουργία container για τα επιπλέον timers
+        // Δημιουργία container για τα επιπλέον timers ΔΕΞΙΑ από το κύριο timer
         const extraTimersContainer = document.createElement('div');
         extraTimersContainer.className = 'extra-timers-container';
         extraTimersContainer.style.display = 'none';
-        extraTimersContainer.style.marginTop = '20px';
-        extraTimersContainer.style.padding = '10px';
-        extraTimersContainer.style.borderTop = '1px solid var(--border-colour)';
         
-        // Προσθήκη του container μετά το κύριο timer
-        const timerCard = document.querySelector('.timer-card .card-body');
-        timerCard.appendChild(extraTimersContainer);
+        // Προσθήκη του container δίπλα στο κύριο timer
+        const timerDisplayContainer = document.querySelector('.timer-display-container');
+        timerDisplayContainer.appendChild(extraTimersContainer);
         
         this.elements.extraTimersContainer = extraTimersContainer;
     }
@@ -134,6 +132,7 @@ class HeistTimer {
         this.currentPhase = 'setup';
         this.isRunning = true;
         this.setupStartTime = Date.now();
+        this.mainTimerStoppedAt = 0; // Reset το stop time
         
         // Καθαρισμός παλιών extra timers
         this.clearExtraTimers();
@@ -146,10 +145,17 @@ class HeistTimer {
             this.currentSetupTime = Date.now() - this.setupStartTime;
             this.elapsedTime = this.setupElapsedTotal + this.currentSetupTime;
             this.updateDisplay();
-            this.updateProgress(this.currentSetupTime);
             
-            // Έλεγχος για δημιουργία νέου timer στα 7 λεπτά
-            this.checkForExtraTimer(this.currentSetupTime);
+            // Αν το κύριο timer δεν έχει σταματήσει ακόμα, ενημέρωσε το progress
+            if (this.mainTimerStoppedAt === 0) {
+                this.updateProgress(this.currentSetupTime);
+                
+                // Έλεγχος για δημιουργία νέου timer στα 7 λεπτά
+                this.checkForExtraTimer(this.currentSetupTime);
+            } else {
+                // Αν το κύριο timer έχει σταματήσει, ενημέρωσε μόνο τα extra timers
+                this.updateExtraTimers(this.currentSetupTime);
+            }
         }, 10);
         
         this.updateButtonStates();
@@ -159,6 +165,14 @@ class HeistTimer {
     checkForExtraTimer(currentTime) {
         const sevenMinutes = 7 * 60 * 1000;
         const timerCount = Math.floor(currentTime / sevenMinutes);
+        
+        // Αν υπάρχει τουλάχιστον ένα extra timer, σταμάτα το κύριο timer
+        if (timerCount > 0 && this.mainTimerStoppedAt === 0) {
+            this.mainTimerStoppedAt = currentTime;
+            // Κράτα το κύριο timer στα 7 λεπτά
+            this.elements.timerProgress.style.strokeDashoffset = '0';
+            this.updateTimerColor(this.elements.timerProgress, sevenMinutes);
+        }
         
         // Δημιουργία νέων timers αν χρειάζεται
         while (this.extraTimers.length < timerCount) {
@@ -172,45 +186,39 @@ class HeistTimer {
     createExtraTimer(timerNumber) {
         const timerId = `extra-timer-${timerNumber}`;
         
-        // Δημιουργία HTML για το νέο timer
+        // Δημιουργία HTML για το νέο timer (ίδιο design με το κύριο)
         const timerElement = document.createElement('div');
         timerElement.className = 'extra-timer';
         timerElement.id = timerId;
         timerElement.innerHTML = `
-            <div class="extra-timer-header">
-                <span class="extra-timer-title">Timer ${timerNumber} (7+ min)</span>
-                <span class="extra-timer-time">00.00</span>
-            </div>
-            <div class="extra-timer-progress-container">
-                <svg class="extra-timer-progress" width="120" height="120" viewBox="0 0 120 120">
-                    <circle class="extra-timer-progress-bg" cx="60" cy="60" r="54"></circle>
-                    <circle class="extra-timer-progress-fill" cx="60" cy="60" r="54"></circle>
+            <div class="timer-circle">
+                <svg class="timer-progress" width="200" height="200" viewBox="0 0 200 200" aria-hidden="true">
+                    <circle class="timer-progress-bg" cx="100" cy="100" r="90"></circle>
+                    <circle class="timer-progress-fill" cx="100" cy="100" r="90"></circle>
                 </svg>
+                <div class="timer-display extra-timer-display">00.00</div>
             </div>
+            <div class="extra-timer-title">Timer ${timerNumber}</div>
         `;
-        
-        // Προσθήκη στυλ
-        timerElement.style.display = 'flex';
-        timerElement.style.alignItems = 'center';
-        timerElement.style.gap = '15px';
-        timerElement.style.padding = '10px';
-        timerElement.style.border = '1px solid var(--border-colour)';
-        timerElement.style.borderRadius = '8px';
-        timerElement.style.marginBottom = '10px';
-        timerElement.style.background = 'var(--card-bg)';
         
         // Προσθήκη στο container
         this.elements.extraTimersContainer.appendChild(timerElement);
-        this.elements.extraTimersContainer.style.display = 'block';
+        this.elements.extraTimersContainer.style.display = 'flex';
         
         // Αποθήκευση στο array
         this.extraTimers.push({
             id: timerId,
             element: timerElement,
             startTime: this.setupStartTime + (timerNumber * 7 * 60 * 1000),
-            progressFill: timerElement.querySelector('.extra-timer-progress-fill'),
-            timeDisplay: timerElement.querySelector('.extra-timer-time')
+            progressFill: timerElement.querySelector('.timer-progress-fill'),
+            timeDisplay: timerElement.querySelector('.extra-timer-display')
         });
+
+        // Αρχικοποίηση του progress circle
+        const progressFill = timerElement.querySelector('.timer-progress-fill');
+        const circumference = 2 * Math.PI * 90;
+        progressFill.style.strokeDasharray = circumference;
+        progressFill.style.strokeDashoffset = circumference;
     }
 
     updateExtraTimers(currentTime) {
@@ -231,9 +239,8 @@ class HeistTimer {
     }
 
     updateExtraTimerProgress(progressElement, progress, time) {
-        const circumference = 2 * Math.PI * 54;
+        const circumference = 2 * Math.PI * 90;
         const offset = circumference * (1 - progress);
-        progressElement.style.strokeDasharray = circumference;
         progressElement.style.strokeDashoffset = offset;
         
         // Ομαλή μετάβαση χρωμάτων για τα extra timers
@@ -280,6 +287,7 @@ class HeistTimer {
 
     clearExtraTimers() {
         this.extraTimers = [];
+        this.mainTimerStoppedAt = 0;
         if (this.elements.extraTimersContainer) {
             this.elements.extraTimersContainer.innerHTML = '';
             this.elements.extraTimersContainer.style.display = 'none';
@@ -321,9 +329,26 @@ class HeistTimer {
         this.interval = setInterval(() => {
             this.elapsedTime = this.setupElapsedTotal + (Date.now() - this.heistStartTime);
             this.updateDisplay();
+            // Ενημέρωση του progress για το heist phase
+            this.updateHeistProgress();
         }, 10);
         this.updateButtonStates();
         this.updateStatus();
+    }
+
+    updateHeistProgress() {
+        if (this.currentPhase !== 'heist') return;
+        
+        const heistTime = Date.now() - this.heistStartTime;
+        const totalTime = this.setupElapsedTotal + heistTime;
+        
+        // Για το heist phase, θέλουμε το progress circle να είναι πάντα πλήρες
+        // αλλά με χρώμα που αλλάζει ανάλογα με τον συνολικό χρόνο
+        const circumference = 2 * Math.PI * 90;
+        this.elements.timerProgress.style.strokeDashoffset = '0'; // Πλήρες circle
+        
+        // Αλλαγή χρώματος βασισμένη στον συνολικό χρόνο του heist
+        this.updateTimerColor(this.elements.timerProgress, totalTime);
     }
 
     completeHeist() {
@@ -426,7 +451,11 @@ class HeistTimer {
 
     updateProgress(time) {
         if (this.currentPhase !== 'setup') {
-            this.elements.timerProgress.style.strokeDashoffset = '565.48';
+            return;
+        }
+        
+        // Αν το κύριο timer έχει σταματήσει (υπάρχουν extra timers), μην ενημερώσεις το progress
+        if (this.mainTimerStoppedAt > 0) {
             return;
         }
         
@@ -437,7 +466,6 @@ class HeistTimer {
         if (time <= sevenMinutes) {
             progress = time / sevenMinutes;
         } else {
-            // Το κύριο timer σταματάει στα 7 λεπτά και μένει πλήρες
             progress = 1;
         }
         
