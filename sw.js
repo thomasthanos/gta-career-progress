@@ -1,4 +1,5 @@
-const CACHE_NAME = 'career-challenges-v1';
+// sw.js - Βελτιωμένο version
+const CACHE_NAME = 'career-challenges-v2';
 const PRECACHE_URLS = [
   './',
   'index.html',
@@ -11,6 +12,7 @@ const PRECACHE_URLS = [
 ];
 
 self.addEventListener('install', event => {
+  self.skipWaiting();  // Προσθήκη αυτής της γραμμής
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
       return cache.addAll(PRECACHE_URLS);
@@ -20,15 +22,18 @@ self.addEventListener('install', event => {
 
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    Promise.all([
+      self.clients.claim(),  // Προσθήκη αυτής της γραμμής
+      caches.keys().then(cacheNames => {
+        return Promise.all(
+          cacheNames.map(cacheName => {
+            if (cacheName !== CACHE_NAME) {
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+    ])
   );
 });
 
