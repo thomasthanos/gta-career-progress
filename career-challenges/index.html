@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="el" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Career Challenges Heist Timer - Track your setup and heist times efficiently">
+    <title>Career Challenges | Heist Timer</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header" role="banner">
+            <div class="header-content">
+                <h1 class="app-title">Career Challenges</h1>
+                <p class="app-subtitle">Heist Timer & Progress Tracker</p>
+            </div>
+            <div class="theme-toggle">
+                <button id="themeToggle" class="theme-btn" aria-label="Αλλαγή θέματος">
+                    <span class="theme-icon">☀️</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="main-content" role="main">
+            <!-- Timer Section -->
+            <section class="card timer-card" aria-labelledby="timer-title">
+                <div class="card-header">
+                    <h2 class="card-title" id="timer-title">
+                        <span class="card-icon" aria-hidden="true">⏱️</span>
+                        Heist Timer
+                    </h2>
+                    <div class="timer-status" id="timerStatus" aria-live="polite">Ready</div>
+                </div>
+                <div class="card-body">
+                    <div class="heist-name-wrapper">
+                        <label for="heistNameInput" class="sr-only">Heist Name</label>
+                        <input type="text" id="heistNameInput" class="heist-name-input" placeholder="Heist name..." />
+                    </div>
+                    <div class="timer-display-container">
+                        <div class="timer-circle">
+                            <svg class="timer-progress" width="200" height="200" viewBox="0 0 200 200" aria-hidden="true">
+                                <circle class="timer-progress-bg" cx="100" cy="100" r="90"></circle>
+                                <circle class="timer-progress-fill" cx="100" cy="100" r="90"></circle>
+                            </svg>
+                            <div id="timerDisplay" class="timer-display" aria-live="polite">00.00</div>
+                        </div>
+                    </div>
+                    <div class="timer-controls">
+                        <button id="startSetupBtn" class="btn btn-primary">
+                            <span class="btn-icon" aria-hidden="true">🔄</span>
+                            Start Setup
+                        </button>
+                        <button id="completeSetupBtn" class="btn btn-success" disabled>
+                            <span class="btn-icon" aria-hidden="true">✅</span>
+                            Complete Setup
+                        </button>
+                        <button id="startHeistBtn" class="btn btn-warning" disabled>
+                            <span class="btn-icon" aria-hidden="true">🚀</span>
+                            Start Heist
+                        </button>
+                        <button id="completeHeistBtn" class="btn btn-danger" disabled>
+                            <span class="btn-icon" aria-hidden="true">🏁</span>
+                            Complete Heist
+                        </button>
+                        <button id="resetBtn" class="btn btn-outline">
+                            <span class="btn-icon" aria-hidden="true">🔄</span>
+                            Reset
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Setup Times Section -->
+            <section class="card times-card" aria-labelledby="setup-times-title">
+                <div class="card-header">
+                    <h2 class="card-title" id="setup-times-title">
+                        <span class="card-icon" aria-hidden="true">📊</span>
+                        Setup Times
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <div class="times-summary">
+                        <div class="current-setup">
+                            <h3>Current Setup</h3>
+                            <div id="currentSetupTime" class="setup-time" aria-live="polite">--:--</div>
+                        </div>
+                        <div class="setup-total">
+                            <h3>Total Setup Time</h3>
+                            <div id="setupTotalTime" class="setup-total-time" aria-live="polite">--:--</div>
+                        </div>
+                    </div>
+                    <div class="setup-history">
+                        <h3>Last Setups</h3>
+                        <div class="setup-list" id="setupList" aria-live="polite">
+                            <div class="empty-state">No setups recorded yet</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Heist Times Section -->
+            <section class="card heist-card" aria-labelledby="heist-times-title">
+                <div class="card-header">
+                    <h2 class="card-title" id="heist-times-title">
+                        <span class="card-icon" aria-hidden="true">🎯</span>
+                        Heist Times
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <div class="heist-container">
+                        <div class="total-time">
+                            <h3>Total Heist Time</h3>
+                            <div id="totalHeistTime" class="heist-time" aria-live="polite">--:--</div>
+                        </div>
+                        <div class="heist-history">
+                            <h3>Heist History</h3>
+                            <div class="heist-list" id="heistList" aria-live="polite">
+                                <div class="empty-state">No heists completed yet</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="app-footer" role="contentinfo">
+            <p>Career Challenges Heist Timer v2.0</p>
+            <p class="footer-info">Designed for optimal performance tracking</p>
+        </footer>
+    </div>
+
+    <!-- Custom reset confirmation modal -->
+    <div id="resetModal" class="modal" role="dialog" aria-labelledby="modal-title" aria-hidden="true">
+        <div class="modal-content">
+            <p id="modal-title">Είσαι σίγουρος ότι θέλεις να επαναφέρεις το timer;</p>
+            <div class="modal-actions">
+                <button id="confirmResetBtn" class="btn btn-danger">Reset</button>
+                <button id="cancelResetBtn" class="btn btn-outline">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/timer.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

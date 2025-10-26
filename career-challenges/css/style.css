@@ -1,0 +1,886 @@
+/*
+ * Career Challenges Stylesheet
+ *
+ * This stylesheet defines the complete look and feel of the Career Challenges
+ * web application from scratch. It leverages CSS custom properties for
+ * colour palettes, typography, spacing and component sizing. Light and
+ * dark themes are supported via the `data-theme` attribute on the root
+ * `<html>` element. When no theme is set, a dark theme is assumed by
+ * default via fallback values on the root.
+ *
+ * The layout uses a responsive grid, cards for content grouping, and
+ * consistent typography. Buttons are styled for primary actions and
+ * secondary controls. Custom scrollbars improve the experience on long
+ * lists. See `responsive.css` for media queries that adjust the layout
+ * on smaller screens.
+ */
+
+/* --------------------------------------------------
+ * Root variables
+ * Define colour palettes, spacing values and base styles. These values
+ * are referenced throughout the stylesheet to ensure consistency and
+ * make theme switching straightforward. The fallback values below
+ * represent the dark theme. Light theme overrides are defined later.
+ */
+:root {
+    /* Brand colours for actions */
+    --primary: #3a86ff;
+    --primary-dark: #2667cc;
+    --success: #38b000;
+    --success-dark: #2b8a00;
+    --warning: #ff9e00;
+    --warning-dark: #cc7e00;
+    --danger: #ff006e;
+    --danger-dark: #cc0058;
+
+    /* Light theme palette */
+    --light-bg: #f8f9fa;
+    --light-card: #ffffff;
+    --light-border: #e0e0e0;
+    --light-text: #212529;
+    --light-muted: #6c757d;
+
+    /* Dark theme palette */
+    --dark-bg: #0a0a0a;
+    --dark-card: #1a1a1a;
+    --dark-border: #333333;
+    --dark-text: #ffffff;
+    --dark-muted: #9ea5ab;
+    /* Lightened variants for 3D button gradients */
+    --primary-light: #69a1ff;
+    --success-light: #60c500;
+    --warning-light: #ffb84d;
+    --danger-light: #ff4c97;
+
+    /* Spacing scale (multiples of 0.5rem for harmony) */
+    --space-xs: 0.5rem;
+    --space-sm: 1rem;
+    --space-md: 1.5rem;
+    --space-lg: 2rem;
+    --space-xl: 3rem;
+
+    /* Typography */
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --monospace-font: 'Courier New', monospace;
+    --base-line-height: 1.6;
+
+    /* Misc */
+    --transition-speed: 0.3s;
+    --border-radius: 12px;
+    --border-radius-sm: 8px;
+    --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --box-shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.2);
+
+    /* Default semantic assignments (dark theme) */
+    --bg: var(--dark-bg);
+    --card-bg: var(--dark-card);
+    --border-colour: var(--dark-border);
+    --text-colour: var(--dark-text);
+    --muted-colour: var(--dark-muted);
+}
+
+/* Light theme overrides. When the `data-theme="light"` attribute
+ * exists on the `<html>` element, these values replace the dark
+ * defaults. */
+[data-theme="light"] {
+    --bg: var(--light-bg);
+    --card-bg: var(--light-card);
+    --border-colour: var(--light-border);
+    --text-colour: var(--light-text);
+    --muted-colour: var(--light-muted);
+}
+
+/* Explicit dark theme overrides for completeness */
+[data-theme="dark"] {
+    --bg: var(--dark-bg);
+    --card-bg: var(--dark-card);
+    --border-colour: var(--dark-border);
+    --text-colour: var(--dark-text);
+    --muted-colour: var(--dark-muted);
+}
+
+/* --------------------------------------------------
+ * Global resets
+ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+body {
+    font-family: var(--font-family);
+    background: var(--bg);
+    color: var(--text-colour);
+    line-height: var(--base-line-height);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: background var(--transition-speed) ease, color var(--transition-speed) ease;
+}
+
+/* --------------------------------------------------
+ * Structural containers
+ */
+.app-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-md);
+    background: var(--bg);
+}
+
+/* Header */
+.app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--card-bg);
+    border: 1px solid var(--border-colour);
+    border-radius: var(--border-radius);
+    padding: var(--space-md);
+    margin-bottom: var(--space-lg);
+    box-shadow: var(--box-shadow);
+    transition: background var(--transition-speed) ease, border-color var(--transition-speed) ease;
+}
+
+.header-content {
+    flex: 1;
+}
+
+.app-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    /* Use a gradient for the title text */
+    background: linear-gradient(135deg, var(--primary), var(--success));
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    margin-bottom: var(--space-xs);
+}
+
+.app-subtitle {
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--muted-colour);
+}
+
+/* Theme toggle button wrapper */
+.theme-toggle {
+    margin-left: var(--space-md);
+}
+
+/* Adjust icon within the theme button for better visibility */
+.theme-btn .theme-icon {
+    position: relative;
+    z-index: 1;
+    font-size: 1.4rem;
+    line-height: 1;
+    pointer-events: none;
+}
+
+/* Theme button styles */
+.theme-btn {
+    /* Base styling for the theme toggle button: circular with 3D effect. */
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    /* Custom properties for theme button colours; these default to primary
+       but can be overridden if desired via [data-theme] overrides. */
+    --theme-btn-color: var(--primary);
+    --theme-btn-color-dark: var(--primary-dark);
+    --theme-btn-color-light: var(--primary-light);
+    /* Use a radial gradient for a softer highlight from the top-left corner. */
+    background: radial-gradient(circle at 30% 30%, var(--theme-btn-color-light) 30%, var(--theme-btn-color) 100%);
+    color: #ffffff;
+    /* Create a subtle 3D inset shadow to emphasize the button's depth. */
+    box-shadow: 0 4px 0 var(--theme-btn-color-dark);
+    transition: background var(--transition-speed) ease, box-shadow var(--transition-speed) ease, filter var(--transition-speed) ease;
+    overflow: hidden;
+}
+
+/* Hover and active states for the theme button */
+.theme-btn:hover:not(:disabled) {
+    filter: brightness(1.1);
+}
+.theme-btn:active:not(:disabled) {
+    box-shadow: 0 2px 0 var(--theme-btn-color-dark);
+}
+
+/* Theme button colour variations depending on active theme.
+ * When the application is in dark mode, use the warning palette
+ * (yellow/orange) for the theme toggle to symbolise switching to light mode.
+ * In light mode, fall back to the primary palette (blue) to indicate
+ * switching back to dark mode. These variables override the defaults
+ * defined in .theme-btn. */
+[data-theme="dark"] .theme-btn {
+    /* In dark theme, display a warm palette to hint at switching to light mode */
+    --theme-btn-color: var(--warning);
+    --theme-btn-color-dark: var(--warning-dark);
+    --theme-btn-color-light: var(--warning-light);
+}
+[data-theme="light"] .theme-btn {
+    /* In light theme, display a cool palette to hint at switching to dark mode */
+    --theme-btn-color: var(--primary);
+    --theme-btn-color-dark: var(--primary-dark);
+    --theme-btn-color-light: var(--primary-light);
+}
+
+/* --------------------------------------------------
+ * Main content layout
+ */
+.main-content {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-lg);
+    margin-bottom: var(--space-lg);
+}
+
+/* Card component */
+.card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-colour);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    display: flex;
+    flex-direction: column;
+    transition: background var(--transition-speed) ease, border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+}
+
+.card:hover {
+    box-shadow: var(--box-shadow-lg);
+}
+
+.card-header {
+    padding: var(--space-md);
+    border-bottom: 1px solid var(--border-colour);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--text-colour);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.card-icon {
+    font-size: 1.5rem;
+}
+
+.card-body {
+    padding: var(--space-md);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* --------------------------------------------------
+ * Timer card styles
+ */
+.timer-card {
+    grid-column: 1 / -1; /* timer spans both columns by default */
+}
+
+.timer-status {
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--card-bg);
+    background: var(--muted-colour);
+}
+
+/* Status colours by state. These classes are toggled via JS. */
+.timer-status.ready { background: var(--muted-colour); }
+.timer-status.setup { background: var(--primary); }
+.timer-status.heist-ready { background: var(--warning); }
+.timer-status.heist { background: var(--warning-dark); }
+.timer-status.completed { background: var(--success); }
+
+/* Timer display container */
+.timer-display-container {
+    text-align: center;
+    margin-bottom: var(--space-lg);
+}
+
+/* Circular progress container */
+.timer-circle {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    margin: 0 auto;
+}
+
+.timer-progress {
+    transform: rotate(-90deg);
+}
+
+.timer-progress-bg {
+    fill: none;
+    stroke: var(--border-colour);
+    stroke-width: 8;
+}
+
+.timer-progress-fill {
+    fill: none;
+    stroke: var(--primary);
+    stroke-width: 8;
+    stroke-linecap: round;
+    stroke-dasharray: 565.48;
+    stroke-dashoffset: 565.48;
+    transition: stroke-dashoffset 1s linear;
+}
+
+/* Numeric timer text */
+.timer-display {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: var(--monospace-font);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-colour);
+}
+
+/* Timer control buttons grid */
+.timer-controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--space-sm);
+}
+
+/* --------------------------------------------------
+ * Buttons
+ * All buttons share base styles and have variant classes for different
+ * colours. Disabled states are handled with reduced opacity and
+ * pointer-events.
+ */
+/* Button base with 3D effect */
+.btn {
+    /* Default button colour assignments; overridden by variant classes */
+    --btn-color: var(--primary);
+    --btn-color-dark: var(--primary-dark);
+    --btn-color-light: var(--primary-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-md);
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    color: #ffffff;
+    background: linear-gradient(to bottom, var(--btn-color-light), var(--btn-color));
+    box-shadow: 0 4px 0 var(--btn-color-dark);
+    transition: background var(--transition-speed) ease, filter var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.btn:not(:disabled):hover {
+    filter: brightness(1.05);
+}
+
+.btn:not(:disabled):active {
+    box-shadow: 0 2px 0 var(--btn-color-dark);
+}
+
+/* Button icon font sizing */
+.btn-icon {
+    font-size: 1.1rem;
+}
+
+/* Primary button variant */
+.btn-primary {
+    --btn-color: var(--primary);
+    --btn-color-dark: var(--primary-dark);
+    --btn-color-light: var(--primary-light);
+}
+
+/* Success button variant */
+.btn-success {
+    --btn-color: var(--success);
+    --btn-color-dark: var(--success-dark);
+    --btn-color-light: var(--success-light);
+}
+
+/* Warning button variant */
+.btn-warning {
+    --btn-color: var(--warning);
+    --btn-color-dark: var(--warning-dark);
+    --btn-color-light: var(--warning-light);
+}
+
+/* Danger button variant */
+.btn-danger {
+    --btn-color: var(--danger);
+    --btn-color-dark: var(--danger-dark);
+    --btn-color-light: var(--danger-light);
+}
+
+/* Outline button variant */
+.btn-outline {
+    --btn-color: var(--primary);
+    --btn-color-dark: var(--primary-dark);
+    --btn-color-light: var(--primary-light);
+    background: transparent;
+    border: 2px solid var(--btn-color);
+    color: var(--btn-color);
+    box-shadow: none;
+}
+.btn-outline:hover:not(:disabled) {
+    background: var(--btn-color);
+    color: #ffffff;
+    filter: none;
+}
+.btn-outline:not(:disabled):active {
+    background: var(--btn-color-dark);
+    color: #ffffff;
+}
+
+/* --------------------------------------------------
+ * Setup & Heist tracking sections
+ */
+.times-card,
+.heist-card {
+    /* Each occupies one column on larger screens; responsive.css adjusts */
+    grid-column: span 1;
+}
+
+.times-container,
+.heist-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+/*
+ * Times summary: display current setup and total setup time side by side.
+ * Each panel flexes equally and inherits the styling of the original
+ * current-setup/total-time cards.
+ */
+.times-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+}
+.times-summary > .current-setup,
+.times-summary > .setup-total {
+    flex: 1 1 0;
+    text-align: center;
+    padding: var(--space-md);
+    background: var(--bg);
+    border: 1px solid var(--border-colour);
+    border-radius: var(--border-radius-sm);
+}
+.setup-total h3 {
+    font-size: 0.9rem;
+    color: var(--muted-colour);
+    margin-bottom: var(--space-xs);
+}
+.setup-total-time {
+    font-family: var(--monospace-font);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-colour);
+}
+
+.current-setup,
+.total-time {
+    text-align: center;
+    padding: var(--space-md);
+    background: var(--bg);
+    border: 1px solid var(--border-colour);
+    border-radius: var(--border-radius-sm);
+}
+
+.current-setup h3,
+.total-time h3 {
+    font-size: 0.9rem;
+    color: var(--muted-colour);
+    margin-bottom: var(--space-xs);
+}
+
+.setup-time,
+.heist-time {
+    font-family: var(--monospace-font);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-colour);
+}
+
+/* Colour coding for setup times */
+.setup-time.good { color: var(--success); }
+.setup-time.average { color: var(--muted-colour); }
+.setup-time.slow { color: var(--danger); }
+
+/* Histories */
+.setup-history h3,
+.heist-history h3 {
+    font-size: 1rem;
+    color: var(--muted-colour);
+    margin-bottom: var(--space-sm);
+}
+
+.setup-list,
+.heist-list {
+    max-height: 200px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.setup-item,
+/*
+ * Heist items will be rendered using the <details> element to allow
+ * collapsing/expanding of individual heist runs. Override the base
+ * layout to suit a collapsible structure.
+ */
+.heist-item {
+    border: 1px solid var(--border-colour);
+    border-radius: var(--border-radius-sm);
+    background: var(--bg);
+    margin-bottom: var(--space-xs);
+    overflow: hidden;
+    font-size: 0.9rem;
+    color: var(--text-colour);
+}
+
+/* Style the summary portion of the collapsible heist item */
+.heist-item summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm);
+    cursor: pointer;
+    list-style: none;
+}
+/* Remove default triangle marker */
+.heist-item summary::-webkit-details-marker {
+    display: none;
+}
+
+/* Container for individual setup times inside a heist */
+.heist-setups {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    padding: var(--space-sm);
+    border-top: 1px solid var(--border-colour);
+}
+.heist-setup-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--monospace-font);
+    font-weight: 600;
+}
+
+/* Setup items remain simple list items for the current heist */
+.setup-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm);
+    background: var(--bg);
+    border: 1px solid var(--border-colour);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.9rem;
+    color: var(--text-colour);
+}
+
+.setup-time-display,
+.heist-time-display {
+    font-family: var(--monospace-font);
+    font-weight: 600;
+}
+
+.setup-time-display.good { color: var(--success); }
+.setup-time-display.average { color: var(--muted-colour); }
+.setup-time-display.slow { color: var(--danger); }
+
+.empty-state {
+    text-align: center;
+    color: var(--muted-colour);
+    font-style: italic;
+    padding: var(--space-md);
+}
+
+/* --------------------------------------------------
+ * Notepad styles
+ */
+.notepad-card {
+    grid-column: 1 / -1;
+}
+
+.notepad-container {
+    display: flex;
+    flex-direction: column;
+    height: 300px;
+}
+
+.notepad {
+    flex: 1;
+    width: 100%;
+    padding: var(--space-md);
+    font-family: var(--font-family);
+    font-size: 0.9rem;
+    line-height: var(--base-line-height);
+    background: var(--bg);
+    color: var(--text-colour);
+    border: 1px solid var(--border-colour);
+    border-radius: var(--border-radius-sm);
+    resize: none;
+    transition: background var(--transition-speed) ease, color var(--transition-speed) ease, border-color var(--transition-speed) ease;
+}
+
+.notepad:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(58, 134, 255, 0.2);
+}
+
+.notepad-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--space-sm);
+    padding-top: var(--space-sm);
+    border-top: 1px solid var(--border-colour);
+}
+
+.notepad-stats {
+    font-size: 0.8rem;
+    color: var(--muted-colour);
+}
+
+.notepad-actions {
+    display: flex;
+    gap: var(--space-sm);
+}
+
+/* --------------------------------------------------
+ * Footer
+ */
+.app-footer {
+    text-align: center;
+    background: var(--card-bg);
+    border: 1px solid var(--border-colour);
+    border-radius: var(--border-radius);
+    padding: var(--space-md);
+    color: var(--muted-colour);
+    font-size: 0.9rem;
+}
+
+.footer-info {
+    font-size: 0.8rem;
+    margin-top: var(--space-xs);
+    opacity: 0.7;
+}
+
+/* --------------------------------------------------
+ * Heist name input styles
+ * Provides a user-friendly input field above the timer to name the current
+ * heist or mission. It inherits colours from the current theme and uses
+ * border highlighting on focus.
+ */
+.heist-name-wrapper {
+    margin-bottom: var(--space-md);
+}
+
+.heist-name-input {
+    width: 100%;
+    padding: var(--space-sm);
+    font-size: 1rem;
+    font-family: var(--font-family);
+    background: var(--bg);
+    color: var(--text-colour);
+    border: 1px solid var(--border-colour);
+    border-radius: var(--border-radius-sm);
+    transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+}
+
+.heist-name-input::placeholder {
+    color: var(--muted-colour);
+}
+
+.heist-name-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(58, 134, 255, 0.2);
+}
+
+/* Style for the setup name label in histories */
+.setup-name {
+    font-weight: 600;
+    margin-right: var(--space-xs);
+}
+
+/* --------------------------------------------------
+ * Modal styles
+ * Defines a full-screen overlay with centered content for confirmations
+ * such as resetting the timer. The modal is hidden by default and shown
+ * when the .show class is added.
+ */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.5);
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity var(--transition-speed) ease, visibility var(--transition-speed) ease;
+    z-index: 1000;
+}
+
+.modal.show {
+    visibility: visible;
+    opacity: 1;
+}
+
+.modal-content {
+    background: var(--card-bg);
+    padding: var(--space-lg);
+    border-radius: var(--border-radius);
+    text-align: center;
+    box-shadow: var(--box-shadow-lg);
+    max-width: 90%;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-sm);
+    margin-top: var(--space-md);
+}
+
+/* --------------------------------------------------
+ * Timer display enhancements
+ */
+.timer-display {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* --------------------------------------------------
+ * Custom scrollbars (WebKit browsers)
+ */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-colour);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--muted-colour);
+}
+
+/* Enhanced mobile experience */
+@media (max-width: 768px) {
+    .timer-progress {
+        width: 140px;
+        height: 140px;
+    }
+    
+    .timer-progress-bg,
+    .timer-progress-fill {
+        stroke-width: 6;
+    }
+    
+    /* Better button spacing */
+    .timer-controls .btn {
+        justify-content: center;
+        text-align: center;
+    }
+    
+    /* Improved card spacing */
+    .card {
+        margin-bottom: var(--space-sm);
+    }
+    
+    /* Better list readability */
+    .setup-item,
+    .heist-item summary {
+        padding: var(--space-sm);
+    }
+}
+
+/* Enhanced focus states for accessibility */
+.btn:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.heist-name-input:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* Better loading states */
+.btn:disabled {
+    opacity: 0.6;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Improved modal for mobile */
+@media (max-width: 480px) {
+    .modal-content {
+        width: 90%;
+        margin: 0 auto;
+    }
+    
+    .modal-actions .btn {
+        flex: 1;
+    }
+}
+/* Screen reader only text */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}

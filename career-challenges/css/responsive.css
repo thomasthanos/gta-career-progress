@@ -1,0 +1,202 @@
+/*
+ * Responsive adjustments for the Career Challenges app.
+ * Clean, functional design with improved mobile experience.
+ */
+
+@media (max-width: 1200px) {
+    .main-content {
+        grid-template-columns: 1fr;
+        gap: var(--space-md);
+    }
+    .timer-card,
+    .times-card,
+    .heist-card,
+    .notepad-card {
+        grid-column: 1;
+    }
+    .timer-display {
+        font-size: 1.8rem;
+    }
+    .app-title {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .app-container {
+        padding: var(--space-sm);
+    }
+    .app-header {
+        flex-direction: column;
+        gap: var(--space-sm);
+        text-align: center;
+        padding: var(--space-sm);
+    }
+    .theme-toggle {
+        margin-left: 0;
+        margin-top: var(--space-sm);
+    }
+    .app-title {
+        font-size: 1.8rem;
+    }
+    .timer-display {
+        font-size: 1.5rem;
+    }
+    .timer-controls {
+        grid-template-columns: 1fr;
+        gap: var(--space-sm);
+    }
+    .setup-time, .heist-time {
+        font-size: 1.5rem;
+    }
+    .card-body {
+        padding: var(--space-sm);
+    }
+    .card-header {
+        padding: var(--space-sm);
+        flex-direction: column;
+        gap: var(--space-sm);
+        text-align: center;
+    }
+    .timer-status {
+        align-self: center;
+    }
+    .times-summary {
+        flex-direction: column;
+        gap: var(--space-sm);
+    }
+    .times-summary > .current-setup,
+    .times-summary > .setup-total {
+        flex: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .app-title {
+        font-size: 1.5rem;
+    }
+    .app-subtitle {
+        font-size: 0.9rem;
+    }
+    .timer-display {
+        font-size: 1.3rem;
+    }
+    .timer-circle {
+        width: 140px;
+        height: 140px;
+    }
+    .btn {
+        padding: var(--space-sm);
+        font-size: 0.85rem;
+        min-height: 44px;
+    }
+    .setup-time, .heist-time {
+        font-size: 1.3rem;
+    }
+    .setup-total-time {
+        font-size: 1.5rem;
+    }
+    .card-title {
+        font-size: 1.1rem;
+    }
+    .card-icon {
+        font-size: 1.2rem;
+    }
+    .heist-name-input {
+        font-size: 0.9rem;
+        padding: var(--space-xs) var(--space-sm);
+    }
+    .modal-content {
+        padding: var(--space-md);
+        margin: var(--space-sm);
+    }
+    .modal-actions {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 360px) {
+    .app-title {
+        font-size: 1.3rem;
+    }
+    .timer-display {
+        font-size: 1.1rem;
+    }
+    .timer-circle {
+        width: 120px;
+        height: 120px;
+    }
+    .btn {
+        font-size: 0.8rem;
+        padding: var(--space-xs) var(--space-sm);
+    }
+    .setup-time, .heist-time {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-height: 600px) and (orientation: landscape) {
+    .app-container {
+        padding: var(--space-xs);
+    }
+    .app-header {
+        margin-bottom: var(--space-sm);
+        padding: var(--space-sm);
+    }
+    .main-content {
+        gap: var(--space-sm);
+        margin-bottom: var(--space-sm);
+    }
+    .card-header {
+        padding: var(--space-sm);
+    }
+    .card-body {
+        padding: var(--space-sm);
+    }
+    .timer-circle {
+        width: 120px;
+        height: 120px;
+    }
+    .timer-display {
+        font-size: 1.1rem;
+    }
+    .timer-controls {
+        gap: var(--space-xs);
+    }
+    .btn {
+        padding: var(--space-xs) var(--space-sm);
+        min-height: 40px;
+    }
+}
+
+/* Improved touch targets for mobile */
+@media (pointer: coarse) {
+    .btn {
+        min-height: 44px;
+    }
+    .heist-item summary {
+        padding: var(--space-sm);
+        min-height: 44px;
+    }
+    .setup-item {
+        padding: var(--space-sm);
+        min-height: 44px;
+    }
+}
+
+/* Reduced motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .card {
+        transition: none;
+    }
+    
+    .btn {
+        transition: none;
+    }
+}
