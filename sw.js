@@ -1,5 +1,5 @@
 // sw.js - Βελτιωμένο version
-const CACHE_NAME = 'career-challenges-v2';
+const CACHE_NAME = 'career-challenges-v3';
 const PRECACHE_URLS = [
   './',
   'index.html',
