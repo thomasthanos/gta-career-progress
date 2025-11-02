@@ -131,38 +131,66 @@ class HeistTimer {
     }
 
     startSetup() {
+        // Only allow starting a setup when the timer is ready or the previous setup(s) were completed and a heist has not yet started.
         if (this.currentPhase !== 'ready' && this.currentPhase !== 'heist-ready') return;
+
+        // If we are starting a new setup while we are in the 'heist-ready' phase, it means there are
+        // existing setups recorded for a heist attempt that has not yet transitioned to the heist phase.
+        // Only consider those setups as failed and remove them when the name of the new attempt matches
+        // the name of the previous attempt. If the user has changed the heist name, we keep the existing
+        // setup times so they can still proceed with the previous attempt or choose to complete it.
+        if (this.currentPhase === 'heist-ready' && this.setupTimes.length > 0) {
+            const currentName = (this.heistName || '').trim();
+            const lastName = (this.setupTimes[0].name || '').trim();
+            if (lastName !== '' && currentName !== '' && currentName === lastName) {
+                this.setupTimes = [];
+                this.setupElapsedTotal = 0;
+                this.lastSetupDuration = 0;
+                this.updateSetupDisplay();
+            }
+        }
+
         this.currentPhase = 'setup';
         this.isRunning = true;
         this.setupStartTime = Date.now();
         this.mainTimerStoppedAt = 0; // Reset το stop time
-        
+
         // Καθαρισμός παλιών extra timers
         this.clearExtraTimers();
-        
+
+        // Initialize the overall start time for the first setup in this session
         if (this.setupTimes.length === 0) {
             this.startTime = Date.now();
         }
-        
+
+        // Start the interval that updates the display and progress every 10ms
         this.interval = setInterval(() => {
             this.currentSetupTime = Date.now() - this.setupStartTime;
             this.elapsedTime = this.setupElapsedTotal + this.currentSetupTime;
             this.updateDisplay();
             
-            // Αν το κύριο timer δεν έχει σταματήσει ακόμα, ενημέρωσε το progress
+            // Update the progress ring only for the main timer when it hasn't been capped by extra timers
             if (this.mainTimerStoppedAt === 0) {
                 this.updateProgress(this.currentSetupTime);
                 
-                // Έλεγχος για δημιουργία νέου timer στα 7 λεπτά
+                // Check whether a new extra timer should be created at the 7 minute mark
                 this.checkForExtraTimer(this.currentSetupTime);
             } else {
-                // Αν το κύριο timer έχει σταματήσει, ενημέρωσε μόνο τα extra timers
+                // If the main timer is stopped, update only the extra timers
                 this.updateExtraTimers(this.currentSetupTime);
             }
         }, 10);
-        
+
+        // Update button states and status text
         this.updateButtonStates();
         this.updateStatus();
+
+        // When a new setup begins, clear the current setup display so that
+        // previous setup times are not shown during an ongoing or aborted setup.
+        if (this.elements.currentSetupTime) {
+            this.elements.currentSetupTime.textContent = '--:--';
+            this.elements.currentSetupTime.className = 'setup-time';
+        }
     }
 
     checkForExtraTimer(currentTime) {
