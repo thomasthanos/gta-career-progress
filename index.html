@@ -114,9 +114,16 @@
                 </div>
                 <div class="card-body">
                     <div class="heist-container">
-                        <div class="total-time">
-                            <h3>Total Heist Time</h3>
-                            <div id="totalHeistTime" class="heist-time" aria-live="polite">--:--</div>
+                        <!-- Summary section for total and phase (heist-only) times -->
+                        <div class="heist-summary">
+                            <div class="total-time">
+                                <h3>Total Heist Time</h3>
+                                <div id="totalHeistTime" class="heist-time" aria-live="polite">--:--</div>
+                            </div>
+                            <div class="phase-time">
+                                <h3>Heist Time</h3>
+                                <div id="heistPhaseTime" class="heist-time" aria-live="polite">--:--</div>
+                            </div>
                         </div>
                         <div class="heist-history">
                             <h3>Heist History</h3>

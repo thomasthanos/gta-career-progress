@@ -579,6 +579,41 @@ body {
     margin-bottom: var(--space-sm);
 }
 
+/*
+ * Heist summary: display total heist time and the heist-only time side by side.
+ * Mirrors the `.times-summary` layout used for setups. Each panel flexes
+ * equally and inherits the styling of the original total-time card.
+ */
+.heist-summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+}
+
+.heist-summary > .total-time,
+.heist-summary > .phase-time {
+    flex: 1 1 0;
+    text-align: center;
+    padding: var(--space-md);
+    background: var(--bg);
+    border: 1px solid var(--border-colour);
+    border-radius: var(--border-radius-sm);
+}
+
+.phase-time h3 {
+    font-size: 0.9rem;
+    color: var(--muted-colour);
+    margin-bottom: var(--space-xs);
+}
+
+.phase-time .heist-time {
+    font-family: var(--monospace-font);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-colour);
+}
+
 /* Lists for setups and heists: allow taller lists by default and
    enable scrolling internally. The previous implementation capped
    histories at 200px, which restricted the visible entries to around

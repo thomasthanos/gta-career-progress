@@ -42,6 +42,9 @@ class HeistTimer {
         this.elements.confirmResetBtn = document.getElementById('confirmResetBtn');
         this.elements.cancelResetBtn = document.getElementById('cancelResetBtn');
         this.elements.setupTotalTime = document.getElementById('setupTotalTime');
+
+        // Optional element to display the time spent during the heist phase only.
+        this.elements.heistPhaseTime = document.getElementById('heistPhaseTime');
         
         // Δημιουργία container για τα επιπλέον timers
         this.createExtraTimersContainer();
@@ -566,8 +569,17 @@ class HeistTimer {
         if (this.heistTimes.length > 0) {
             const latest = this.heistTimes[0];
             this.elements.totalHeistTime.textContent = latest.totalTime;
+            // If a dedicated heist-phase timer element exists, update it with
+            // the heist-only duration (not including setups). The `formatted`
+            // property holds the display string for the heist phase.
+            if (this.elements.heistPhaseTime) {
+                this.elements.heistPhaseTime.textContent = latest.formatted;
+            }
         } else {
             this.elements.totalHeistTime.textContent = '--:--';
+            if (this.elements.heistPhaseTime) {
+                this.elements.heistPhaseTime.textContent = '--:--';
+            }
         }
         this.elements.heistList.innerHTML = '';
         if (this.heistTimes.length === 0) {
