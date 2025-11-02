@@ -579,27 +579,24 @@ body {
     margin-bottom: var(--space-sm);
 }
 
+/* Lists for setups and heists: allow taller lists by default and
+   enable scrolling internally. The previous implementation capped
+   histories at 200px, which restricted the visible entries to around
+   four items. Increasing the max-height to a relative unit (50vh)
+   provides more room out of the box. When an `expanded` class is
+   toggled, the max-height is removed so the list can grow freely. */
 .setup-list,
 .heist-list {
-    max-height: 200px;
+    max-height: 50vh; /* allow half of the viewport height by default */
     overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: var(--space-xs);
 }
 
-/* When the history headers are clicked, an `expanded` class is toggled
-   on the list to reveal more history. Instead of removing the height
-   restriction entirely (which can cause the surrounding card to
-   truncate the list), assign a larger maximum height and retain
-   scrolling. This allows long histories to be fully browsable via
-   an internal scrollbar without being clipped by the card container. */
 .setup-list.expanded,
 .heist-list.expanded {
-    /* Use a relative unit so the list can grow on larger screens but
-       still avoids overflowing the card. 50vh corresponds to 50% of the
-       viewport height. Adjust as needed for optimal balance. */
-    max-height: 50vh;
+    max-height: none; /* show entire history when expanded */
     overflow-y: auto;
 }
 
