@@ -19,6 +19,10 @@ class HeistTimer {
         this.currentSetupTime = 0;
         this.lastSetupDuration = 0;
         this.setupElapsedTotal = 0;
+        // Store information about failed setups (removed during retries) separately. Each entry
+        // has the same structure as a regular setup: { time, formatted, timestamp, name }.
+        this.failedSetupTimes = [];
+        this.failedElapsedTotal = 0;
         this.heistName = '';
         this.extraTimers = []; // Array για τα επιπλέον timers μετά τα 7 λεπτά
         this.mainTimerStoppedAt = 0; // Χρόνος που σταμάτησε το κύριο timer
@@ -42,6 +46,9 @@ class HeistTimer {
         this.elements.confirmResetBtn = document.getElementById('confirmResetBtn');
         this.elements.cancelResetBtn = document.getElementById('cancelResetBtn');
         this.elements.setupTotalTime = document.getElementById('setupTotalTime');
+        // Elements for failed setups (if present in the DOM)
+        this.elements.failedTotalTime = document.getElementById('failedTotalTime');
+        this.elements.failedSetupList = document.getElementById('failedSetupList');
 
         // Optional element to display the time spent during the heist phase only.
         this.elements.heistPhaseTime = document.getElementById('heistPhaseTime');
@@ -143,10 +150,28 @@ class HeistTimer {
             const currentName = (this.heistName || '').trim();
             const lastName = (this.setupTimes[0].name || '').trim();
             if (lastName !== '' && currentName !== '' && currentName === lastName) {
-                this.setupTimes = [];
-                this.setupElapsedTotal = 0;
+                // Treat the most recent recorded setup as a failed attempt. Remove only that entry and
+                // store it separately so we can track the time spent on fails. Preserve earlier setups.
+                const failedSetup = this.setupTimes.shift();
+                if (failedSetup && typeof failedSetup.time === 'number') {
+                    this.setupElapsedTotal -= failedSetup.time;
+                    // Save the failed setup in a dedicated array and accumulate its duration.
+                    this.failedSetupTimes.push({
+                        time: failedSetup.time,
+                        formatted: this.formatTime(failedSetup.time),
+                        timestamp: failedSetup.timestamp || Date.now(),
+                        name: failedSetup.name || this.heistName || ''
+                    });
+                    this.failedElapsedTotal += failedSetup.time;
+                }
+                // Reset lastSetupDuration to indicate there is no ongoing setup yet.
                 this.lastSetupDuration = 0;
+                // Recompute ratings and update both setup and failed displays.
+                this.updateSetupRatings();
                 this.updateSetupDisplay();
+                this.updateFailedSetupDisplay();
+                // Persist changes so that failed setups are remembered across reloads.
+                this.saveToStorage();
             }
         }
 
@@ -661,6 +686,45 @@ class HeistTimer {
         });
     }
 
+    /**
+     * Update the display for failed setups. This section shows a list of all setups that were
+     * aborted (removed during retries) and aggregates their total duration. If no failed setups
+     * exist, an empty-state message is displayed. The corresponding elements must exist in the DOM
+     * (failedSetupList and failedTotalTime) for this method to have any effect.
+     */
+    updateFailedSetupDisplay() {
+        const listEl = this.elements.failedSetupList;
+        const totalEl = this.elements.failedTotalTime;
+        if (!listEl) return;
+        listEl.innerHTML = '';
+        if (this.failedSetupTimes.length === 0) {
+            listEl.innerHTML = '<div class="empty-state">No failed setups recorded yet</div>';
+            if (totalEl) {
+                totalEl.textContent = '--:--';
+            }
+            return;
+        }
+        // Populate the list with failed setups. Most recent fails should appear first.
+        this.failedSetupTimes.forEach((setup, index) => {
+            const item = document.createElement('div');
+            // Reuse the existing setup-item class for styling consistency. Optionally add a
+            // "failed" class for potential custom styles.
+            item.className = 'setup-item failed';
+            const nameLabel = setup.name && setup.name.trim()
+                ? setup.name
+                : `Failed ${this.failedSetupTimes.length - index}`;
+            item.innerHTML = `
+                <span class="setup-name">${nameLabel}</span>
+                <span class="setup-time-display">${setup.formatted}</span>
+            `;
+            listEl.appendChild(item);
+        });
+        // Update the total time spent on failed setups.
+        if (totalEl) {
+            totalEl.textContent = this.formatTime(this.failedElapsedTotal);
+        }
+    }
+
     getTimeRating(time) {
         if (time < 60000) return 'good';
         if (time < 180000) return 'average';
@@ -718,7 +782,10 @@ class HeistTimer {
             startTime: this.startTime,
             setupStartTime: this.setupStartTime,
             heistStartTime: this.heistStartTime,
-            lastSetupDuration: this.lastSetupDuration
+            lastSetupDuration: this.lastSetupDuration,
+            // Persist failed setup data as well
+            failedSetupTimes: this.failedSetupTimes,
+            failedElapsedTotal: this.failedElapsedTotal
         };
         localStorage.setItem('heistTimer', JSON.stringify(timerData));
     }
@@ -748,6 +815,17 @@ class HeistTimer {
             } else {
                 this.lastSetupDuration = timerData.lastSetupDuration || 0;
             }
+            // Load failed setup information
+            this.failedSetupTimes = timerData.failedSetupTimes || [];
+            // Recalculate total duration of fails
+            this.failedElapsedTotal = 0;
+            if (Array.isArray(this.failedSetupTimes)) {
+                this.failedSetupTimes.forEach(f => {
+                    if (typeof f.time === 'number') {
+                        this.failedElapsedTotal += f.time;
+                    }
+                });
+            }
             this.updateSetupRatings();
             // After loading heistTimes, mark any earlier attempts with the same
             // name as failed so they remain in history but are identified.
@@ -769,6 +847,8 @@ class HeistTimer {
             }
             this.updateSetupDisplay();
             this.updateHeistDisplay();
+            // Update display for failed setups
+            this.updateFailedSetupDisplay();
             this.updateButtonStates();
             this.updateStatus();
             this.updateDisplay();
@@ -792,8 +872,12 @@ class HeistTimer {
         this.heistTimes = [];
         this.lastSetupDuration = 0;
         this.setupElapsedTotal = 0;
+        // Also reset failed setups
+        this.failedSetupTimes = [];
+        this.failedElapsedTotal = 0;
         this.updateSetupDisplay();
         this.updateHeistDisplay();
+        this.updateFailedSetupDisplay();
         localStorage.removeItem('heistTimer');
     }
 }

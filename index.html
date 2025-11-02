@@ -76,6 +76,30 @@
                 </div>
             </section>
 
+            <!-- Failed Setups Section -->
+            <section class="card times-card" aria-labelledby="failed-times-title">
+                <div class="card-header">
+                    <h2 class="card-title" id="failed-times-title">
+                        <span class="card-icon" aria-hidden="true">❌</span>
+                        Failed Setups
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <div class="times-summary">
+                        <div class="failed-total">
+                            <h3>Total Failed Time</h3>
+                            <div id="failedTotalTime" class="failed-total-time" aria-live="polite">--:--</div>
+                        </div>
+                    </div>
+                    <div class="failed-setup-history">
+                        <h3>Failed Setups</h3>
+                        <div class="setup-list failed-setup-list" id="failedSetupList" aria-live="polite">
+                            <div class="empty-state">No failed setups recorded yet</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- Setup Times Section -->
             <section class="card times-card" aria-labelledby="setup-times-title">
                 <div class="card-header">

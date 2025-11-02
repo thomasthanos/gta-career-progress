@@ -534,6 +534,14 @@ body {
     color: var(--text-colour);
 }
 
+/* Style for the total failed time display. Mirrors setup-total-time styling for consistency. */
+.failed-total-time {
+    font-family: var(--monospace-font);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-colour);
+}
+
 .current-setup,
 .total-time {
     text-align: center;
@@ -665,6 +673,13 @@ body {
    indicate that these attempts were superseded by a more recent heist with
    the same name. */
 .heist-item.failed summary {
+    opacity: 0.6;
+    text-decoration: line-through;
+}
+
+/* Apply a faded effect and strikethrough on failed setup entries to distinguish them from
+   successful setups. */
+.setup-item.failed .setup-name {
     opacity: 0.6;
     text-decoration: line-through;
 }
