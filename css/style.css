@@ -588,6 +588,14 @@ body {
     gap: var(--space-xs);
 }
 
+/* When the history headers are clicked, an `expanded` class is toggled
+   on the list to reveal the full history. Remove the max height so the
+   list can grow naturally (scrollbars still appear if needed). */
+.setup-list.expanded,
+.heist-list.expanded {
+    max-height: none;
+}
+
 .setup-item,
 /*
  * Heist items will be rendered using the <details> element to allow
@@ -626,6 +634,12 @@ body {
     gap: var(--space-xs);
     padding: var(--space-sm);
     border-top: 1px solid var(--border-colour);
+    /* Allow scrolling through all setups inside a heist when there are
+       many entries. Without a max height, long lists could overflow
+       the card. A height limit plus overflow-y lets the user scroll
+       within the details section. */
+    max-height: 300px;
+    overflow-y: auto;
 }
 
 .heist-setup-item {

@@ -364,7 +364,29 @@ class HeistTimer {
             name: this.heistName || '',
             setups: this.setupTimes.map(s => Object.assign({}, s))
         };
+        // Always record the latest heist attempt at the beginning of the list.
         this.heistTimes.unshift(heistData);
+
+        // Deduplicate heist records based on their name. When the same name
+        // appears more than once, earlier entries represent failed attempts
+        // and should be discarded. Keeping only the most recent entry for
+        // each non-empty name ensures that only the successful (latest)
+        // attempt counts towards the history and total times.
+        if (heistData.name && heistData.name.trim() !== '') {
+            const seenNames = new Set();
+            this.heistTimes = this.heistTimes.filter(entry => {
+                const name = (entry.name || '').trim();
+                if (name === '') {
+                    // unnamed heists are not deduplicated
+                    return true;
+                }
+                if (seenNames.has(name)) {
+                    return false;
+                }
+                seenNames.add(name);
+                return true;
+            });
+        }
         this.stopTimer();
         this.currentPhase = 'ready';
         this.setupTimes = [];
@@ -669,6 +691,27 @@ class HeistTimer {
                 this.lastSetupDuration = timerData.lastSetupDuration || 0;
             }
             this.updateSetupRatings();
+            // Clean up duplicate heist entries from previous sessions. If the
+            // same name appears more than once, keep only the most recent
+            // occurrence (the first instance in the array). This mirrors the
+            // behaviour when completing a heist.
+            if (Array.isArray(this.heistTimes)) {
+                const seenNames = new Set();
+                this.heistTimes = this.heistTimes.filter(entry => {
+                    const name = (entry.name || '').trim();
+                    if (name === '') {
+                        return true;
+                    }
+                    if (seenNames.has(name)) {
+                        return false;
+                    }
+                    seenNames.add(name);
+                    return true;
+                });
+                // Persist the deduplicated history to localStorage so that
+                // duplicate entries are not restored on subsequent loads.
+                this.saveToStorage();
+            }
             this.updateSetupDisplay();
             this.updateHeistDisplay();
             this.updateButtonStates();
