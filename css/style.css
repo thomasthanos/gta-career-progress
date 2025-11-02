@@ -589,11 +589,18 @@ body {
 }
 
 /* When the history headers are clicked, an `expanded` class is toggled
-   on the list to reveal the full history. Remove the max height so the
-   list can grow naturally (scrollbars still appear if needed). */
+   on the list to reveal more history. Instead of removing the height
+   restriction entirely (which can cause the surrounding card to
+   truncate the list), assign a larger maximum height and retain
+   scrolling. This allows long histories to be fully browsable via
+   an internal scrollbar without being clipped by the card container. */
 .setup-list.expanded,
 .heist-list.expanded {
-    max-height: none;
+    /* Use a relative unit so the list can grow on larger screens but
+       still avoids overflowing the card. 50vh corresponds to 50% of the
+       viewport height. Adjust as needed for optimal balance. */
+    max-height: 50vh;
+    overflow-y: auto;
 }
 
 .setup-item,

@@ -544,7 +544,11 @@ class HeistTimer {
             this.elements.setupList.innerHTML = '<div class="empty-state">No setups recorded yet</div>';
             return;
         }
-        this.setupTimes.slice(0, 5).forEach((setup, index) => {
+        // Show all setup entries instead of limiting to the latest five.
+        // Previously the list was truncated with .slice(0, 5), which prevented
+        // users from scrolling through longer histories. Now we iterate over
+        // the entire array, allowing the CSS to handle scrolling when necessary.
+        this.setupTimes.forEach((setup, index) => {
             const item = document.createElement('div');
             item.className = 'setup-item';
             const nameLabel = setup.name && setup.name.trim()
@@ -570,7 +574,10 @@ class HeistTimer {
             this.elements.heistList.innerHTML = '<div class="empty-state">No heists completed yet</div>';
             return;
         }
-        this.heistTimes.slice(0, 5).forEach((heist, index) => {
+        // Show all heist entries instead of limiting to the latest five.
+        // Removing the .slice(0, 5) call ensures that the entire history is
+        // rendered and can be scrolled through by the user.
+        this.heistTimes.forEach((heist, index) => {
             const heistLabel = heist.name && heist.name.trim()
                 ? heist.name
                 : `Heist ${this.heistTimes.length - index}`;
