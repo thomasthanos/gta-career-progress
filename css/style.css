@@ -661,6 +661,14 @@ body {
     list-style: none;
 }
 
+/* Failed heist entries are displayed with reduced opacity and strikethrough to
+   indicate that these attempts were superseded by a more recent heist with
+   the same name. */
+.heist-item.failed summary {
+    opacity: 0.6;
+    text-decoration: line-through;
+}
+
 /* Remove default triangle marker */
 .heist-item summary::-webkit-details-marker {
     display: none;

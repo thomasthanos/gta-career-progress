@@ -398,24 +398,25 @@ class HeistTimer {
         // Always record the latest heist attempt at the beginning of the list.
         this.heistTimes.unshift(heistData);
 
-        // Deduplicate heist records based on their name. When the same name
-        // appears more than once, earlier entries represent failed attempts
-        // and should be discarded. Keeping only the most recent entry for
-        // each non-empty name ensures that only the successful (latest)
-        // attempt counts towards the history and total times.
+        // Mark previous attempts with the same name as failed instead of removing them.
+        // When multiple heists share the same non-empty name, only the most recent
+        // (first in the array) is considered successful; all earlier entries are
+        // flagged with a `failed` property. These failed attempts will remain in
+        // the history list but can be styled differently or excluded from totals.
         if (heistData.name && heistData.name.trim() !== '') {
             const seenNames = new Set();
-            this.heistTimes = this.heistTimes.filter(entry => {
+            this.heistTimes.forEach(entry => {
                 const name = (entry.name || '').trim();
                 if (name === '') {
-                    // unnamed heists are not deduplicated
-                    return true;
+                    entry.failed = false;
+                    return;
                 }
                 if (seenNames.has(name)) {
-                    return false;
+                    entry.failed = true;
+                } else {
+                    entry.failed = false;
+                    seenNames.add(name);
                 }
-                seenNames.add(name);
-                return true;
             });
         }
         this.stopTimer();
@@ -622,7 +623,10 @@ class HeistTimer {
                 ? heist.name
                 : `Heist ${this.heistTimes.length - index}`;
             const detailsEl = document.createElement('details');
-            detailsEl.className = 'heist-item';
+            // Add a `failed` class to heist items that represent aborted or
+            // superseded attempts with the same name. This class allows
+            // styling to differentiate them in the history list.
+            detailsEl.className = 'heist-item' + (heist.failed ? ' failed' : '');
             const summaryEl = document.createElement('summary');
             summaryEl.innerHTML = `
                 <span>${heistLabel} (${heist.setupCount} setups)</span>
@@ -647,6 +651,13 @@ class HeistTimer {
                 detailsEl.appendChild(setupsContainer);
             }
             this.elements.heistList.appendChild(detailsEl);
+        });
+
+        // Ensure that all heist items are collapsed by default when the list is (re)rendered.
+        // This prevents previously expanded details from remaining open after adding a new heist.
+        const detailEls = this.elements.heistList.querySelectorAll('details');
+        detailEls.forEach(detail => {
+            detail.open = false;
         });
     }
 
@@ -738,26 +749,23 @@ class HeistTimer {
                 this.lastSetupDuration = timerData.lastSetupDuration || 0;
             }
             this.updateSetupRatings();
-            // Clean up duplicate heist entries from previous sessions. If the
-            // same name appears more than once, keep only the most recent
-            // occurrence (the first instance in the array). This mirrors the
-            // behaviour when completing a heist.
+            // After loading heistTimes, mark any earlier attempts with the same
+            // name as failed so they remain in history but are identified.
             if (Array.isArray(this.heistTimes)) {
                 const seenNames = new Set();
-                this.heistTimes = this.heistTimes.filter(entry => {
+                this.heistTimes.forEach(entry => {
                     const name = (entry.name || '').trim();
                     if (name === '') {
-                        return true;
+                        entry.failed = false;
+                        return;
                     }
                     if (seenNames.has(name)) {
-                        return false;
+                        entry.failed = true;
+                    } else {
+                        entry.failed = false;
+                        seenNames.add(name);
                     }
-                    seenNames.add(name);
-                    return true;
                 });
-                // Persist the deduplicated history to localStorage so that
-                // duplicate entries are not restored on subsequent loads.
-                this.saveToStorage();
             }
             this.updateSetupDisplay();
             this.updateHeistDisplay();
